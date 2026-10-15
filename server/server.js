@@ -991,7 +991,10 @@ app.use(
       });
     }
 
-    return next(error);
+    console.error("Unhandled server error:", error);
+    return res.status(500).json({
+      message: "A server error occurred. Please try again.",
+    });
   }
 );
 
