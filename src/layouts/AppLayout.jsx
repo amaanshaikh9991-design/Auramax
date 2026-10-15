@@ -1,0 +1,91 @@
+import { NavLink } from "react-router-dom";
+import MotionLayer from "../components/MotionLayer";
+import { useEffect, useState } from "react";
+
+function AppLayout({ children }) {
+ const [student, setStudent] = useState(null);
+ useEffect(() => {
+  fetch("http://localhost:5000/api/me", { credentials: "include" })
+    .then((response) => response.ok ? response.json() : null)
+    .then((data) => data && setStudent(data.student))
+    .catch(() => {});
+ }, []);
+ const navigation = [
+  { label: "Home", icon: "⌂", path: "/app/home" },
+  { label: "Check-in", icon: "☀", path: "/app/check-in" },
+  { label: "Antarang AI", icon: "✦", path: "/app/chat" },
+  { label: "Cognitive Test", icon: "🧠", path: "/app/cognitive-test" },
+  { label: "My Journey", icon: "↗", path: "/app/journey" },
+  { label: "Explore", icon: "✦", path: "/app/explore" },
+  { label: "Support", icon: "♡", path: "/app/support" },
+];
+
+  return (
+    <div className="app-shell">
+
+      <aside className="sidebar">
+
+        <div className="brand">
+          <div className="brand-mark">A</div>
+
+          <div>
+            <div className="brand-name">Antarang</div>
+            <div className="brand-tagline">
+              a little space for you
+            </div>
+          </div>
+        </div>
+
+        <nav className="main-nav">
+          {navigation.map((item) => (
+            <NavLink
+              key={item.label}
+              to={item.path}
+              className={({ isActive }) =>
+                `nav-item ${isActive ? "active" : ""}`
+              }
+            >
+              <span className="nav-icon">{item.icon}</span>
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="sidebar-bottom">
+
+          <NavLink
+            to="/app/profile"
+            className="profile-mini"
+          >
+            {student?.profilePhoto ? <img className="profile-avatar profile-avatar-image" src={student.profilePhoto} alt="" /> : <div className="profile-avatar">{student?.name?.charAt(0).toUpperCase() || "A"}</div>}
+
+            <div>
+              <div className="profile-name">
+                {student?.name || "My Space"}
+              </div>
+
+              <div className="profile-subtitle">
+                Profile & settings
+              </div>
+            </div>
+
+            <span className="profile-arrow">→</span>
+          </NavLink>
+
+        </div>
+
+      </aside>
+
+      <main className="app-content">
+
+        <MotionLayer>
+          {children}
+        </MotionLayer>
+
+      </main>
+
+    </div>
+  );
+}
+
+export default AppLayout;

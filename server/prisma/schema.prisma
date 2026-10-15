@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Student {
+  id           Int       @id @default(autoincrement())
+  name         String?   @unique @db.VarChar(100)
+  institution  String?   @db.VarChar(160)
+  profilePhoto String?   @map("profile_photo") @db.Text
+  rollNumber   String    @unique @map("roll_number") @db.VarChar(20)
+  passwordHash String    @map("password_hash")
+  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+
+  sessions     Session[]
+  chatSessions ChatSession[]
+  assessments  CognitiveAssessment[]
+  documents    Document[]
+  checkIns     CheckIn[]
+
+  @@map("students")
+}
+
+model Session {
+  id        String   @id
+  studentId Int      @map("student_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model CognitiveAssessment {
+  id            Int      @id @default(autoincrement())
+  studentId     Int?     @map("student_id")
+  rollNumber    String   @map("roll_number") @db.VarChar(20)
+  age           Int
+  grade         Int
+  board         String   @db.VarChar(20)
+  score         Int
+  correctCount  Int      @map("correct_count")
+  questionCount Int      @map("question_count")
+  totalTimeMs   Int      @map("total_time_ms")
+  responses     Json
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  student       Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([rollNumber, createdAt])
+  @@index([studentId, createdAt])
+  @@map("cognitive_assessments")
+}
+
+model ChatSession {
+  id        Int      @id @default(autoincrement())
+  studentId Int      @map("student_id")
+  title     String?  @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  student  Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@index([studentId])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        Int      @id @default(autoincrement())
+  sessionId Int      @map("session_id")
+  role      String   @db.VarChar(20)
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@map("chat_messages")
+}
+
+model Document {
+  id        Int      @id @default(autoincrement())
+  studentId Int      @map("student_id")
+  filename  String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  student Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  chunks  DocumentChunk[]
+
+  @@index([studentId])
+  @@map("documents")
+}
+
+model DocumentChunk {
+  id         Int      @id @default(autoincrement())
+  documentId Int      @map("document_id")
+  studentId  Int      @map("student_id")
+  chunkIndex Int      @map("chunk_index")
+  content    String
+  embedding  Unsupported("vector")
+  pageNumber Int?     @map("page_number")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([studentId])
+  @@map("document_chunks")
+}
+
+model CheckIn {
+  id        Int      @id @default(autoincrement())
+  studentId Int      @map("student_id")
+  mood      String   @db.VarChar(20)
+  factors   Json
+  reflection String? @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, createdAt])
+  @@map("check_ins")
+}

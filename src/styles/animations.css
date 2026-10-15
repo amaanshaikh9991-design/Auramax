@@ -1,0 +1,644 @@
+/* =========================================================
+   ANTARANG — ANIMATION ENGINE
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   GLOBAL MOTION SETTINGS
+   --------------------------------------------------------- */
+
+:root {
+  --motion-fast: 180ms;
+  --motion-normal: 420ms;
+  --motion-slow: 800ms;
+  --motion-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
+/* ---------------------------------------------------------
+   PAGE ENTRANCE
+   --------------------------------------------------------- */
+
+.anim-page-enter {
+  animation: antarangPageEnter 700ms var(--motion-soft) both;
+}
+
+@keyframes antarangPageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   FADE + SLIDE
+   --------------------------------------------------------- */
+
+.anim-fade-up {
+  animation: antarangFadeUp 650ms var(--motion-soft) both;
+}
+
+@keyframes antarangFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.anim-fade-down {
+  animation: antarangFadeDown 650ms var(--motion-soft) both;
+}
+
+@keyframes antarangFadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.anim-fade-left {
+  animation: antarangFadeLeft 700ms var(--motion-soft) both;
+}
+
+@keyframes antarangFadeLeft {
+  from {
+    opacity: 0;
+    transform: translateX(35px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+
+.anim-fade-right {
+  animation: antarangFadeRight 700ms var(--motion-soft) both;
+}
+
+@keyframes antarangFadeRight {
+  from {
+    opacity: 0;
+    transform: translateX(-35px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   SCALE ENTRANCE
+   --------------------------------------------------------- */
+
+.anim-pop {
+  animation: antarangPop 650ms var(--motion-spring) both;
+}
+
+@keyframes antarangPop {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+
+  70% {
+    transform: scale(1.025);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   STAGGER SYSTEM
+   Add .anim-stagger to parent
+   --------------------------------------------------------- */
+
+.anim-stagger > * {
+  opacity: 0;
+  animation: antarangStagger 650ms var(--motion-soft) forwards;
+}
+
+.anim-stagger > *:nth-child(1) {
+  animation-delay: 80ms;
+}
+
+.anim-stagger > *:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.anim-stagger > *:nth-child(3) {
+  animation-delay: 220ms;
+}
+
+.anim-stagger > *:nth-child(4) {
+  animation-delay: 290ms;
+}
+
+.anim-stagger > *:nth-child(5) {
+  animation-delay: 360ms;
+}
+
+.anim-stagger > *:nth-child(6) {
+  animation-delay: 430ms;
+}
+
+.anim-stagger > *:nth-child(7) {
+  animation-delay: 500ms;
+}
+
+.anim-stagger > *:nth-child(8) {
+  animation-delay: 570ms;
+}
+
+@keyframes antarangStagger {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   FLOATING
+   --------------------------------------------------------- */
+
+.anim-float {
+  animation: antarangFloat 4.5s ease-in-out infinite;
+}
+
+@keyframes antarangFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+}
+
+
+.anim-float-soft {
+  animation: antarangFloatSoft 6s ease-in-out infinite;
+}
+
+@keyframes antarangFloatSoft {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -7px, 0);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   BREATHING / LIVING OBJECT
+   --------------------------------------------------------- */
+
+.anim-breathe {
+  animation: antarangBreathe 4s ease-in-out infinite;
+}
+
+@keyframes antarangBreathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.045);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   GENTLE ROTATION
+   --------------------------------------------------------- */
+
+.anim-spin-slow {
+  animation: antarangSpinSlow 18s linear infinite;
+}
+
+@keyframes antarangSpinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+.anim-wiggle {
+  animation: antarangWiggle 3.8s ease-in-out infinite;
+}
+
+@keyframes antarangWiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(3deg);
+  }
+
+  50% {
+    transform: rotate(-2deg);
+  }
+
+  75% {
+    transform: rotate(2deg);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   SPARKLE
+   --------------------------------------------------------- */
+
+.anim-sparkle {
+  animation: antarangSparkle 2.4s ease-in-out infinite;
+}
+
+@keyframes antarangSparkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.75) rotate(0deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(20deg);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   PULSE
+   --------------------------------------------------------- */
+
+.anim-pulse {
+  animation: antarangPulse 2.6s ease-in-out infinite;
+}
+
+@keyframes antarangPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(86, 115, 99, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 0 12px rgba(86, 115, 99, 0.08);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   GLOW PULSE
+   --------------------------------------------------------- */
+
+.anim-glow {
+  animation: antarangGlow 3s ease-in-out infinite;
+}
+
+@keyframes antarangGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 rgba(255, 214, 110, 0));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 12px rgba(255, 214, 110, 0.5));
+  }
+}
+
+
+/* ---------------------------------------------------------
+   HOVER LIFT
+   --------------------------------------------------------- */
+
+.anim-hover-lift {
+  transition:
+    transform 300ms var(--motion-spring),
+    box-shadow 300ms var(--motion-spring);
+}
+
+.anim-hover-lift:hover {
+  transform: translateY(-8px) scale(1.015);
+  box-shadow: 0 20px 45px rgba(38, 52, 49, 0.1);
+}
+
+
+/* ---------------------------------------------------------
+   HOVER TILT
+   --------------------------------------------------------- */
+
+.anim-hover-tilt {
+  transition:
+    transform 350ms var(--motion-spring),
+    box-shadow 350ms ease;
+  transform-style: preserve-3d;
+}
+
+.anim-hover-tilt:hover {
+  transform: perspective(900px) rotateX(2deg) rotateY(-3deg)
+    translateY(-5px);
+  box-shadow: 0 24px 50px rgba(38, 52, 49, 0.11);
+}
+
+
+/* ---------------------------------------------------------
+   IMAGE / EMOJI ZOOM
+   --------------------------------------------------------- */
+
+.anim-hover-grow {
+  transition: transform 350ms var(--motion-spring);
+}
+
+.anim-hover-grow:hover {
+  transform: scale(1.12) rotate(-2deg);
+}
+
+
+/* ---------------------------------------------------------
+   BUTTON ENERGY
+   --------------------------------------------------------- */
+
+.anim-button-energy {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.anim-button-energy::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: linear-gradient(
+    110deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 65%
+  );
+  transform: translateX(-100%) rotate(8deg);
+  transition: transform 700ms ease;
+  pointer-events: none;
+}
+
+.anim-button-energy:hover::before {
+  transform: translateX(100%) rotate(8deg);
+}
+
+
+/* ---------------------------------------------------------
+   SHINE
+   --------------------------------------------------------- */
+
+.anim-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.anim-shine::after {
+  content: "";
+  position: absolute;
+  top: -30%;
+  left: -80%;
+  width: 45%;
+  height: 160%;
+  background: rgba(255, 255, 255, 0.22);
+  transform: rotate(20deg);
+  transition: left 700ms var(--motion-soft);
+  pointer-events: none;
+}
+
+.anim-shine:hover::after {
+  left: 140%;
+}
+
+
+/* ---------------------------------------------------------
+   ORBIT
+   --------------------------------------------------------- */
+
+.anim-orbit {
+  animation: antarangOrbit 12s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes antarangOrbit {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   DRIFTING PARTICLE
+   --------------------------------------------------------- */
+
+.anim-drift {
+  animation: antarangDrift 7s ease-in-out infinite;
+}
+
+@keyframes antarangDrift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  25% {
+    transform: translate(8px, -12px);
+  }
+
+  50% {
+    transform: translate(-5px, -20px);
+  }
+
+  75% {
+    transform: translate(-12px, -8px);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   REACTION POP
+   Useful after mood selection
+   --------------------------------------------------------- */
+
+.anim-reaction {
+  animation: antarangReaction 650ms var(--motion-spring);
+}
+
+@keyframes antarangReaction {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.3;
+  }
+
+  55% {
+    transform: scale(1.16);
+    opacity: 1;
+  }
+
+  75% {
+    transform: scale(0.96);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   CELEBRATION BURST
+   --------------------------------------------------------- */
+
+.anim-celebrate {
+  animation: antarangCelebrate 850ms var(--motion-spring);
+}
+
+@keyframes antarangCelebrate {
+  0% {
+    transform: scale(0.7) rotate(-8deg);
+    opacity: 0;
+  }
+
+  35% {
+    transform: scale(1.12) rotate(3deg);
+    opacity: 1;
+  }
+
+  60% {
+    transform: scale(0.97) rotate(-1deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   TEXT REVEAL
+   --------------------------------------------------------- */
+
+.anim-text-reveal {
+  animation: antarangTextReveal 800ms var(--motion-soft) both;
+}
+
+@keyframes antarangTextReveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    clip-path: inset(100% 0 0 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   UNDERLINE ENERGY
+   --------------------------------------------------------- */
+
+.anim-underline {
+  position: relative;
+}
+
+.anim-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -5px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  transition: right 400ms var(--motion-spring);
+}
+
+.anim-underline:hover::after {
+  right: 0;
+}
+
+
+/* ---------------------------------------------------------
+   PAGE CONTENT REVEAL
+   --------------------------------------------------------- */
+
+.anim-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 700ms var(--motion-soft),
+    transform 700ms var(--motion-soft);
+}
+
+.anim-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+/* ---------------------------------------------------------
+   REDUCED MOTION
+   IMPORTANT FOR ACCESSIBILITY
+   --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
