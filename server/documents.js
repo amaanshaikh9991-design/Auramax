@@ -1,6 +1,5 @@
 import express from "express";
 import multer from "multer";
-import { PDFParse } from "pdf-parse";
 import prisma from "./db.js";
 import { createEmbedding } from "./embedding.js";
 import { requireAuth } from "./middleware.js";
@@ -49,14 +48,14 @@ export async function retrieveRelevantChunks(studentId, query, limit = 6) {
 }
 
 router.post("/upload", requireAuth, upload.single("pdf"), async (req, res) => {
-  let parser;
   try {
     if (!req.file) {
       return res.status(400).json({ message: "Please upload a PDF file." });
     }
 
-    parser = new PDFParse({ data: req.file.buffer });
-    const result = await parser.getText();
+    // Lazy import — avoids pdfjs-dist loading DOMMatrix at module init time
+    const { default: pdfParse } = await import("pdf-parse/lib/pdf-parse.js");
+    const result = await pdfParse(req.file.buffer);
     const text = result.text?.trim() || "";
 
     if (!text) {
@@ -106,8 +105,6 @@ router.post("/upload", requireAuth, upload.single("pdf"), async (req, res) => {
         ? error.message
         : "Failed to read and save this PDF.",
     });
-  } finally {
-    if (parser) await parser.destroy();
   }
 });
 
