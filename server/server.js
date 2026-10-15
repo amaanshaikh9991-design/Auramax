@@ -23,11 +23,14 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
+      // Allow requests with no origin (server-to-server, curl, Postman)
+      if (!origin) return callback(null, true);
+      // Allow if it matches an explicitly listed origin
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      // Allow any Vercel preview/production deployment of this project
+      if (/\.vercel\.app$/.test(origin)) return callback(null, true);
+      // Block everything else
+      return callback(null, false);
     },
     credentials: true,
   })
