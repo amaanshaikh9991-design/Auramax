@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import gsap from "gsap";
+import API_BASE_URL from "../api";
 
 import Button from "../components/Button";
 import FactorCard from "../components/FactorCard";
@@ -81,7 +82,7 @@ function CheckIn() {
       setSaving(true);
       setSaveError("");
       try {
-        const response = await fetch("http://localhost:5000/api/check-ins", {
+        const response = await fetch(`${API_BASE_URL}/api/check-ins`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

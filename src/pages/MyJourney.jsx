@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import API_BASE_URL from "../api";
 
 const moodMeta = {
   great: { emoji: "😄", tone: "great", value: 88 },
@@ -30,7 +31,7 @@ function MyJourney() {
   const today = new Date();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/check-ins", { credentials: "include" })
+    fetch(`${API_BASE_URL}/api/check-ins`, { credentials: "include" })
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || "Unable to load your journey.");

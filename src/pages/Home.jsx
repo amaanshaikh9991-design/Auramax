@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 
 const weekMood = [
   {
@@ -82,7 +83,7 @@ const topics = [
 function Home() {
   const [studentName, setStudentName] = useState("");
   useEffect(() => {
-    fetch("http://localhost:5000/api/me", { credentials: "include" })
+    fetch(`${API_BASE_URL}/api/me`, { credentials: "include" })
       .then((response) => response.ok ? response.json() : null)
       .then((data) => data?.student?.name && setStudentName(data.student.name))
       .catch(() => {});

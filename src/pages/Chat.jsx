@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "../styles/Chat.css";
+import API_BASE_URL from "../api";
 
 function Chat() {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ function Chat() {
   const loadDocuments = async () => {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/documents",
+        `${API_BASE_URL}/api/documents`,
         { credentials: "include" }
       );
       const body = await response.text();
@@ -94,7 +95,7 @@ function Chat() {
 
       try {
         const response = await fetch(
-          "http://localhost:5000/api/chat/sessions",
+          `${API_BASE_URL}/api/chat/sessions`,
           {
             method: "GET",
             credentials: "include",
@@ -139,7 +140,7 @@ function Chat() {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/api/chat/${urlSessionId}`,
+          `${API_BASE_URL}/api/chat/${urlSessionId}`,
           {
             method: "GET",
             credentials: "include",
@@ -204,7 +205,7 @@ function Chat() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/chat/${id}`,
+        `${API_BASE_URL}/api/chat/${id}`,
         {
           method: "PATCH",
           headers: {
@@ -254,7 +255,7 @@ function Chat() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/chat/${id}`,
+        `${API_BASE_URL}/api/chat/${id}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -306,7 +307,7 @@ function Chat() {
       formData.append("pdf", selectedFile);
 
       const response = await fetch(
-        "http://localhost:5000/api/documents/upload",
+        `${API_BASE_URL}/api/documents/upload`,
         {
           method: "POST",
           credentials: "include",
@@ -391,7 +392,7 @@ function Chat() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/chat",
+        `${API_BASE_URL}/api/chat`,
         {
           method: "POST",
           headers: {
@@ -439,7 +440,7 @@ function Chat() {
       // Refresh chat list
       const sessionsResponse =
         await fetch(
-          "http://localhost:5000/api/chat/sessions",
+          `${API_BASE_URL}/api/chat/sessions`,
           {
             method: "GET",
             credentials: "include",

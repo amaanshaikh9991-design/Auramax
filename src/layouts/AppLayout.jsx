@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
 import MotionLayer from "../components/MotionLayer";
 import { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 
 function AppLayout({ children }) {
  const [student, setStudent] = useState(null);
  useEffect(() => {
-  fetch("http://localhost:5000/api/me", { credentials: "include" })
+  fetch(`${API_BASE_URL}/api/me`, { credentials: "include" })
     .then((response) => response.ok ? response.json() : null)
     .then((data) => data && setStudent(data.student))
     .catch(() => {});

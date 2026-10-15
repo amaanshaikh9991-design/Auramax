@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
+import API_BASE_URL from '../api';
 import AssessmentCard from '../components/AssessmentCard';
 import QuestionRenderer from '../components/QuestionRenderer';
 import ProgressBar from '../components/ProgressBar';
@@ -27,8 +28,8 @@ export default function CognitiveTest() {
     const loadStudentData = async () => {
       try {
         const [profileResponse, assessmentResponse] = await Promise.all([
-          fetch('http://localhost:5000/api/me', { credentials: 'include' }),
-          fetch('http://localhost:5000/api/assessments', { credentials: 'include' })
+          fetch(`${API_BASE_URL}/api/me`, { credentials: 'include' }),
+          fetch(`${API_BASE_URL}/api/assessments`, { credentials: 'include' })
         ]);
         if (profileResponse.ok) {
           const data = await profileResponse.json();
@@ -80,7 +81,7 @@ export default function CognitiveTest() {
   const saveAssessment = async (completedResponses, assessmentTime) => {
     setSaveStatus('saving');
     try {
-      const response = await fetch('http://localhost:5000/api/assessments', {
+      const response = await fetch(`${API_BASE_URL}/api/assessments`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

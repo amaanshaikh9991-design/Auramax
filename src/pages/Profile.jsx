@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import API_BASE_URL from "../api";
 
 function Profile() {
   const [profile, setProfile] = useState(null);
@@ -10,8 +11,8 @@ function Profile() {
 
   useEffect(() => {
     Promise.all([
-      fetch("http://localhost:5000/api/me", { credentials: "include" }),
-      fetch("http://localhost:5000/api/assessments", { credentials: "include" }),
+      fetch(`${API_BASE_URL}/api/me`, { credentials: "include" }),
+      fetch(`${API_BASE_URL}/api/assessments`, { credentials: "include" }),
     ]).then(async ([profileResponse, assessmentResponse]) => {
       if (profileResponse.ok) {
         const data = await profileResponse.json();
@@ -68,7 +69,7 @@ function Profile() {
   const handleSave = async (event) => {
     event.preventDefault();
     setStatus("Saving...");
-    const response = await fetch("http://localhost:5000/api/me", {
+    const response = await fetch(`${API_BASE_URL}/api/me`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

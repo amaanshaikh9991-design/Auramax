@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { gsap } from "gsap";
+import API_BASE_URL from "../api";
 
 function Login() {
   const navigate = useNavigate();
@@ -224,7 +225,7 @@ function Login() {
       }
 
       const response = await fetch(
-  "http://localhost:5000/auth/login",
+  `${API_BASE_URL}/auth/login`,
   {
     method: "POST",
     headers: {
