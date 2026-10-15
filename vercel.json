@@ -11,14 +11,18 @@
       "config": { "distDir": "dist" }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/(auth|api)/(.*)",
-      "dest": "server/server.js"
+      "source": "/auth/:path*",
+      "destination": "/server/server.js"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/api/:path*",
+      "destination": "/server/server.js"
+    },
+    {
+      "source": "/((?!assets|favicon).*)",
+      "destination": "/index.html"
     }
   ]
 }
