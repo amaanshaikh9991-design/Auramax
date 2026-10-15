@@ -7,8 +7,8 @@
     "@huggingface/inference": "^4.13.30",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
-    "argon2": "^0.45.1",
     "baseline-browser-mapping": "^2.11.25",
+    "bcryptjs": "^3.0.3",
     "browserslist": "^4.29.0",
     "caniuse-lite": "^1.0.30001810",
     "convert-source-map": "^2.0.0",
@@ -60,7 +60,7 @@
     "preview": "vite preview",
     "server": "node server/server.js",
     "start": "node server/server.js",
-    "postinstall": "prisma skills sync || exit 0"
+    "postinstall": "prisma generate --schema=server/prisma/schema.prisma"
   },
   "repository": {
     "type": "git",

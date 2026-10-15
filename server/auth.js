@@ -1,9 +1,9 @@
-import argon2 from "argon2";
+import bcrypt from "bcryptjs";
 
 export async function hashPassword(password) {
-  return await argon2.hash(password);
+  return await bcrypt.hash(password, 12);
 }
 
 export async function verifyPassword(hash, password) {
-  return await argon2.verify(hash, password);
+  return await bcrypt.compare(password, hash);
 }
