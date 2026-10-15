@@ -53,9 +53,9 @@ router.post("/upload", requireAuth, upload.single("pdf"), async (req, res) => {
       return res.status(400).json({ message: "Please upload a PDF file." });
     }
 
-    // Lazy import — avoids pdfjs-dist loading DOMMatrix at module init time
+    // Lazy import of v1 internal — avoids test-file check and DOMMatrix crash
     const { default: pdfParse } = await import("pdf-parse/lib/pdf-parse.js");
-    const result = await pdfParse(req.file.buffer);
+    const result = await pdfParse(req.file.buffer, { version: "v2.0.550" });
     const text = result.text?.trim() || "";
 
     if (!text) {

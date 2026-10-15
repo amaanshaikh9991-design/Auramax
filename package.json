@@ -34,7 +34,7 @@
     "multer": "^2.4.0",
     "nanoid": "^3.3.19",
     "node-releases": "^2.0.56",
-    "pdf-parse": "^2.4.5",
+    "pdf-parse": "^1.1.1",
     "pg": "^8.23.1",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.7",
