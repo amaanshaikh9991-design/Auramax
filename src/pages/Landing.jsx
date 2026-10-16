@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 
 function Landing() {
+  const { theme, toggle } = useTheme();
   return (
     <main className="landing-page">
       <div className="landing-blob blob-purple"></div>
@@ -17,6 +19,14 @@ function Landing() {
         </Link>
 
         <div className="landing-nav-actions">
+          <button
+            className="theme-toggle"
+            onClick={toggle}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+
           <Link to="/login" className="login-link">
             Log in
           </Link>

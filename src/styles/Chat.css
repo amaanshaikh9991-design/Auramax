@@ -621,3 +621,95 @@
   color: #3f5b4f;
   font-size: 14px;
 }
+
+/* =========================================================
+   DARK THEME — CHAT
+   ========================================================= */
+
+[data-theme="dark"] .chat-page              { background: var(--app-bg); }
+[data-theme="dark"] .chat-header h1         { color: var(--app-text); }
+[data-theme="dark"] .chat-subtitle          { color: var(--app-muted); }
+[data-theme="dark"] .chat-eyebrow           { color: var(--app-green-dark); }
+[data-theme="dark"] .chat-avatar            { background: var(--app-yellow); }
+
+[data-theme="dark"] .chat-document-memory {
+  background: var(--app-green-soft);
+  border-color: var(--app-border);
+  color: var(--app-green-dark);
+}
+[data-theme="dark"] .chat-document-chip    { background: var(--app-surface); }
+[data-theme="dark"] .chat-document-memory small { color: var(--app-muted); }
+
+[data-theme="dark"] .chat-card {
+  background: linear-gradient(135deg, #1b3325, #2a2510);
+}
+
+[data-theme="dark"] .chat-welcome h2         { color: var(--app-text); }
+[data-theme="dark"] .chat-welcome p          { color: var(--app-muted); }
+[data-theme="dark"] .chat-bot-icon           { background: var(--app-yellow); }
+
+[data-theme="dark"] .chat-suggestions button {
+  background: rgba(255,255,255,0.07);
+  border-color: var(--app-border);
+  color: var(--app-text);
+}
+[data-theme="dark"] .chat-suggestions button:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+[data-theme="dark"] .chat-input-area {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+}
+[data-theme="dark"] .chat-input-area input {
+  background: transparent;
+  color: var(--app-text);
+}
+[data-theme="dark"] .chat-input-area input::placeholder { color: var(--app-muted); }
+
+[data-theme="dark"] .chat-send {
+  background: var(--app-green);
+}
+
+[data-theme="dark"] .ai-message .message-bubble {
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+[data-theme="dark"] .user-message .message-bubble {
+  background: var(--app-green-soft);
+  color: var(--app-text);
+}
+
+/* Chat sidebar / history */
+[data-theme="dark"] .chat-history {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+}
+[data-theme="dark"] .chat-history-header h2 { color: var(--app-text); }
+[data-theme="dark"] .new-chat-button {
+  background: var(--app-green-soft);
+  color: var(--app-green-dark);
+  border-color: var(--app-border);
+}
+[data-theme="dark"] .chat-history-item      { color: var(--app-muted); }
+[data-theme="dark"] .chat-history-item:hover { background: rgba(255,255,255,0.05); }
+[data-theme="dark"] .chat-history-row.active .chat-history-item { background: var(--app-green-soft); color: var(--app-green-dark); }
+[data-theme="dark"] .chat-sidebar-toggle {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+  color: var(--app-muted);
+}
+[data-theme="dark"] .chat-rename-input {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+  color: var(--app-text);
+}
+[data-theme="dark"] .chat-history-actions button { color: var(--app-muted); }
+[data-theme="dark"] .chat-history-actions button:hover { color: var(--app-text); background: rgba(255,255,255,0.07); }
+
+/* PDF upload */
+[data-theme="dark"] .pdf-upload-button,
+[data-theme="dark"] .pdf-upload-submit {
+  background: var(--app-green-soft);
+  color: var(--app-green-dark);
+}

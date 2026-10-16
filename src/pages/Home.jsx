@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import API_BASE_URL from "../api";
+import { useTheme } from "../context/ThemeContext";
 
 const weekMood = [
   {
@@ -81,6 +82,7 @@ const topics = [
 ];
 
 function Home() {
+  const { theme, toggle } = useTheme();
   const [studentName, setStudentName] = useState("");
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/me`, { credentials: "include" })
@@ -116,11 +118,21 @@ function Home() {
 
         </div>
 
-        <div
-          className="home-greeting-mark"
-          aria-hidden="true"
-        >
-          ☀️
+        <div className="home-header-actions">
+          <button
+            className="theme-toggle"
+            onClick={toggle}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+
+          <div
+            className="home-greeting-mark"
+            aria-hidden="true"
+          >
+            ☀️
+          </div>
         </div>
 
       </header>

@@ -24,3 +24,19 @@
 
   --sidebar-width: 245px;
 }
+
+/* ── Dark theme token overrides ── */
+[data-theme="dark"] {
+  --bg: #0f1a14;
+  --surface: #1a2620;
+  --text: #e8ede9;
+  --muted: #8fa699;
+
+  --primary: #6fa880;
+  --primary-dark: #84c097;
+
+  --border: rgba(255, 255, 255, 0.08);
+
+  --shadow-sm: 0 6px 20px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 18px 45px rgba(0, 0, 0, 0.38);
+}

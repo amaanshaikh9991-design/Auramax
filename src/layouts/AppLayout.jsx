@@ -2,8 +2,10 @@ import { NavLink } from "react-router-dom";
 import MotionLayer from "../components/MotionLayer";
 import { useEffect, useState } from "react";
 import API_BASE_URL from "../api";
+import { useTheme } from "../context/ThemeContext";
 
 function AppLayout({ children }) {
+ const { theme, toggle } = useTheme();
  const [student, setStudent] = useState(null);
  useEffect(() => {
   fetch(`${API_BASE_URL}/api/me`, { credentials: "include" })
@@ -50,9 +52,30 @@ function AppLayout({ children }) {
               <span>{item.label}</span>
             </NavLink>
           ))}
+          {/* Mobile-only theme toggle — visible as bottom-nav tab */}
+          <button
+            className="nav-item nav-toggle-mobile"
+            onClick={toggle}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            <span className="nav-icon">{theme === "dark" ? "☀️" : "🌙"}</span>
+            <span>{theme === "dark" ? "Light" : "Dark"}</span>
+          </button>
         </nav>
 
         <div className="sidebar-bottom">
+
+          <button
+            className="theme-toggle"
+            onClick={toggle}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            style={{ width: "100%", marginBottom: "6px", borderRadius: "14px" }}
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+            <span style={{ marginLeft: "8px", fontSize: "11px", fontWeight: 700, color: "var(--app-muted)" }}>
+              {theme === "dark" ? "Light mode" : "Dark mode"}
+            </span>
+          </button>
 
           <NavLink
             to="/app/profile"
