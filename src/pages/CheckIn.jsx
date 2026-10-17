@@ -346,10 +346,10 @@ function CheckIn() {
         .checkin-rock-page {
           position: relative;
           width: 100%;
-          height: 100vh;
+          min-height: 100vh;
           margin: 0;
           box-sizing: border-box;
-          overflow: hidden; /* NO SCROLLING */
+          overflow-x: hidden;
           padding: 24px 48px 20px;
           isolation: isolate;
           display: flex;
@@ -554,19 +554,40 @@ function CheckIn() {
 
         /* ===== RESPONSIVE (Mobile/Tablet allow scroll if needed) ===== */
         @media (max-width: 1050px) {
-          .checkin-rock-page { height: auto; min-height: 100vh; overflow-y: auto; padding: 28px 26px 25px; }
+          .checkin-rock-page { height: auto; min-height: 100vh; overflow-x: hidden; overflow-y: auto; padding: 28px 24px 25px; }
           .mood-rock, .context-rock, .reflection-rock, .complete-rock { grid-template-columns: 1fr; gap: 28px; height: auto; min-height: auto; }
-          .mood-rock-scene { min-height: 400px; }
-          .context-intro { min-height: auto; padding: 25px 0 0; }
+          .mood-rock-scene { min-height: 360px; }
+          .context-intro { min-height: auto; padding: 20px 0 0; }
           .context-orbit-art { display: none; }
-          .reflection-visual, .complete-visual-rock { min-height: 320px; }
+          .reflection-visual, .complete-visual-rock { min-height: 280px; }
         }
         @media (max-width: 700px) {
-          .checkin-rock-page { padding: 22px 15px 22px; }
-          .checkin-title-block h1 { font-size: 32px; }
+          .checkin-rock-page { padding: 20px 14px 24px; }
+          .checkin-rock-header { gap: 14px; margin-bottom: 12px; }
+          .checkin-title-block h1 { font-size: clamp(24px, 6.5vw, 32px); margin: 6px 0; }
+          .checkin-title-block p { font-size: 12px; }
+          .checkin-orb-ring { width: 68px; height: 68px; }
+          .checkin-orb-ring strong { font-size: 16px; }
+          .checkin-orb-ring > div { padding-top: 24px; }
           .mood-rock-grid, .factor-rock-grid { grid-template-columns: 1fr; }
-          .checkin-action-row, .reflection-rock-actions, .complete-rock-actions { flex-direction: column; align-items: stretch; }
-          .private-note { order: 2; }
+          .mood-rock-scene { min-height: 260px; padding: 24px 16px; }
+          .reflection-visual, .complete-visual-rock { min-height: 220px; }
+          .checkin-action-row, .reflection-rock-actions, .complete-rock-actions { flex-direction: column; align-items: stretch; gap: 10px; }
+          .private-note { order: 2; text-align: center; }
+        }
+        @media (max-width: 480px) {
+          .checkin-ambient { display: none; }
+          .checkin-cursor-glow { display: none; }
+          .checkin-step-strip { gap: 4px; }
+          .checkin-step-item { gap: 4px; font-size: 9.5px; }
+          .checkin-step-item span { width: 22px; height: 22px; font-size: 9px; }
+          .complete-summary { grid-template-columns: 1fr; gap: 8px; }
+          .completion-emoji { width: 100px; height: 100px; font-size: 52px; }
+          .mood-hero-emoji { width: 70px; height: 70px; font-size: 36px; }
+        }
+        @media (max-width: 360px) {
+          .checkin-step-item label { font-size: 8.5px; }
+          .mood-option-copy strong { font-size: 12.5px; }
         }
 
         /* ===== DARK MODE ===== */

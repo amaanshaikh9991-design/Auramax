@@ -273,14 +273,13 @@ function Login() {
         html,
         body,
         #root {
-          height: 100%;
-          overflow: hidden;
+          min-height: 100%;
         }
 
         .antarang-cartoon-login {
           position: relative;
-          height: 100vh;
-          overflow: hidden;
+          min-height: 100vh;
+          overflow-x: hidden;
           background:
             radial-gradient(
               circle at 12% 20%,
@@ -299,7 +298,7 @@ function Login() {
           position: relative;
           z-index: 2;
           width: min(1420px, 94vw);
-          height: 100vh;
+          min-height: 100vh;
           margin: 0 auto;
           display: grid;
           grid-template-columns:
@@ -308,6 +307,7 @@ function Login() {
           align-items: center;
           gap: clamp(30px, 5vw, 80px);
           padding: 20px 0;
+          box-sizing: border-box;
         }
 
         .cartoon-character-stage {
@@ -1045,16 +1045,19 @@ function Login() {
         @media (max-width: 900px) {
           .cartoon-login-layout {
             grid-template-columns: 1fr;
-            padding: 15px 0;
+            min-height: auto;
+            padding: 20px 14px 40px;
           }
 
           .cartoon-character-stage {
-            height: 50vh;
+            height: 300px;
+            overflow: hidden;
           }
 
           .cartoon-login-card {
-            width: min(440px, 92vw);
+            width: min(440px, 100%);
             padding: 28px 24px 24px;
+            margin: 0 auto;
           }
 
           .cartoon-brand {
@@ -1065,22 +1068,39 @@ function Login() {
           }
 
           .student-character {
-            transform: scale(0.75);
+            transform: scale(0.65);
           }
         }
 
         @media (max-width: 560px) {
           .cartoon-character-stage {
-            height: 45vh;
+            height: 220px;
+            overflow: hidden;
+          }
+
+          .cartoon-character-glow {
+            width: 260px;
+            height: 260px;
+          }
+
+          .cartoon-ground {
+            width: 200px;
+            bottom: 20px;
           }
 
           .student-character {
-            transform: scale(0.6);
+            transform: scale(0.46);
+            transform-origin: center center;
           }
 
           .cartoon-login-card {
-            padding: 24px 20px 20px;
+            padding: 22px 18px 20px;
             border-radius: 22px;
+            width: 100%;
+          }
+
+          .cartoon-title {
+            font-size: 26px;
           }
         }
       `}</style>

@@ -61,6 +61,17 @@ function AppLayout({ children }) {
             <span className="nav-icon">{theme === "dark" ? "☀️" : "🌙"}</span>
             <span>{theme === "dark" ? "Light" : "Dark"}</span>
           </button>
+          {/* Mobile-only profile link — visible as bottom-nav tab */}
+          <NavLink
+            to="/app/profile"
+            className={({ isActive }) =>
+              `nav-item nav-profile-mobile ${isActive ? "active" : ""}`
+            }
+            title="Profile & settings"
+          >
+            <span className="nav-icon">👤</span>
+            <span>Profile</span>
+          </NavLink>
         </nav>
 
         <div className="sidebar-bottom">
