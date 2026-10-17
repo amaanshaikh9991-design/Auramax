@@ -326,14 +326,23 @@ function Explore() {
             some breathing room.
           </p>
 
-          <button
-            type="button"
-            className="explore-v2-main-button"
-            onClick={() => openActivity("breathe")}
-          >
-            Try a calm activity
-            <span>→</span>
-          </button>
+          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+            <button
+              type="button"
+              className="explore-v2-main-button"
+              onClick={() => openActivity("breathe")}
+            >
+              Try a calm activity
+              <span>→</span>
+            </button>
+            <Link
+              to="/app/check-in?step=practice"
+              className="explore-v2-random"
+              style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}
+            >
+              ✦ Practice Library
+            </Link>
+          </div>
 
         </div>
 

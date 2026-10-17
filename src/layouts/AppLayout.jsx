@@ -19,6 +19,7 @@ function AppLayout({ children }) {
   { label: "Antarang AI", icon: "✦", path: "/app/chat" },
   { label: "Cognitive Test", icon: "🧠", path: "/app/cognitive-test" },
   { label: "My Journey", icon: "↗", path: "/app/journey" },
+  { label: "Pattern Finder", icon: "🔍", path: "/app/patterns" },
   { label: "Explore", icon: "✦", path: "/app/explore" },
   { label: "Support", icon: "♡", path: "/app/support" },
 ];
