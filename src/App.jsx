@@ -10,6 +10,7 @@ import CheckIn from "./pages/CheckIn";
 import CognitiveTest from "./pages/CognitiveTest";
 import Chat from "./pages/Chat";
 import MyJourney from "./pages/MyJourney";
+import PatternFinder from "./pages/PatternFinder";
 import Explore from "./pages/Explore";
 import ResourceDetails from "./pages/ResourceDetails";
 import Support from "./pages/Support";
@@ -75,6 +76,15 @@ function App() {
           element={
             <AppLayout>
               <MyJourney />
+            </AppLayout>
+          }
+        />
+
+        <Route
+          path="/app/patterns"
+          element={
+            <AppLayout>
+              <PatternFinder />
             </AppLayout>
           }
         />

@@ -74,6 +74,15 @@ function MyJourney() {
     return { ...meta, day: date.toLocaleDateString("en-US", { weekday: "short" }), date: date.getDate(), id: item.id };
   }), [recent]);
 
+  const [practiceLog, setPracticeLog] = useState([]);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("antarang_practice_log") || "[]");
+      setPracticeLog(stored);
+    } catch {}
+  }, []);
+
   return (
     <div className="mj-page">
       <header className="mj-header">
@@ -128,6 +137,47 @@ function MyJourney() {
             <div className="mj-factor-list">{factors.map((factor) => <div className="mj-factor" key={factor.name}><span className="mj-factor-icon">{factor.emoji}</span><div className="mj-factor-body"><div><strong>{factor.label}</strong><small>{factor.count} check-ins</small></div><div className="mj-factor-track"><i style={{ width: `${(factor.count / maxFactorCount) * 100}%` }} /></div></div></div>)}</div>
           </article>
         </section>
+
+        {practiceLog.length > 0 && (
+          <section className="mj-card mj-practice-summary-card" style={{ marginTop: "24px", padding: "24px 28px" }}>
+            <div className="mj-section-head">
+              <div>
+                <p className="mj-kicker">EVIDENCE-BASED SKILLS</p>
+                <h2>Practiced exercises</h2>
+              </div>
+              <Link to="/app/check-in?step=practice" className="mj-outline" style={{ fontSize: "11px", padding: "7px 14px", textDecoration: "none" }}>
+                Practice library →
+              </Link>
+            </div>
+            <p className="mj-card-copy">
+              Short, structured interventions you completed based on the WHO stress-management guide.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px", marginTop: "16px" }}>
+              {practiceLog.slice(0, 6).map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    padding: "12px 14px",
+                    borderRadius: "16px",
+                    border: "1px solid var(--app-border, #e5e3dc)",
+                    background: "var(--app-surface-soft, rgba(0,0,0,0.02))",
+                  }}
+                >
+                  <span style={{ fontSize: "24px" }}>{item.emoji || "🌿"}</span>
+                  <div>
+                    <strong style={{ display: "block", fontSize: "13px", color: "var(--app-text, #26332b)" }}>{item.title}</strong>
+                    <small style={{ color: "var(--app-muted, #78857a)", fontSize: "10px" }}>
+                      {item.dateStr} · {item.beforeRating ? `${item.beforeRating}/5 → ${item.afterRating}/5` : `${item.afterRating}/5`}
+                    </small>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </>}
     </div>
   );

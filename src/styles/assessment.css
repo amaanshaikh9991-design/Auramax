@@ -1051,9 +1051,45 @@ h3 {
 }
 
 [data-theme="dark"] .chip {
-  background: var(--app-green-soft);
-  color: var(--app-green-dark);
+  background: var(--app-surface);
+  color: var(--app-text);
   border-color: var(--app-border);
+}
+
+[data-theme="dark"] .module-preview {
+  background: var(--app-surface-soft);
+}
+
+[data-theme="dark"] .module-preview h4 {
+  color: var(--app-text);
+}
+
+[data-theme="dark"] .disclaimer {
+  background: #12202a;
+  border-left-color: #4a90c4;
+  color: #a8c8e8;
+}
+
+[data-theme="dark"] .form-actions {
+  border-top-color: var(--app-border);
+}
+
+[data-theme="dark"] .form-group input:focus,
+[data-theme="dark"] .form-group select:focus {
+  background: var(--app-surface);
+  border-color: var(--app-green);
+  box-shadow: 0 0 0 4px rgba(111, 168, 126, 0.15);
+}
+
+[data-theme="dark"] .btn-secondary {
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-color: var(--app-border);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: var(--app-surface-soft);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 [data-theme="dark"] .question-card {
@@ -1141,6 +1177,11 @@ h3 {
 
 [data-theme="dark"] .save-status         { background: var(--app-surface); border-color: var(--app-border); color: var(--app-muted); }
 [data-theme="dark"] .save-status.save-success { background: var(--app-green-soft); color: var(--app-green-dark); }
+
+[data-theme="dark"] .answer-review li    { color: var(--app-text); }
+[data-theme="dark"] .answer-review li p  { color: var(--app-muted); }
+[data-theme="dark"] .answer-correct      { background: #152a1c; }
+[data-theme="dark"] .answer-incorrect    { background: #2a1515; }
 
 [data-theme="dark"] .mood-row span { background: rgba(255,255,255,0.05); }
 

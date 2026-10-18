@@ -1,10 +1,303 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import gsap from "gsap";
 import API_BASE_URL from "../api";
 
 import Button from "../components/Button";
 import FactorCard from "../components/FactorCard";
+
+/* ═══════════════════════════════════════════════════════════
+   CALMING AUDIO ENGINE — Web Audio API & Speech Synthesis
+   Pure synthetic sound generation: zero network latency or 404s
+   ═══════════════════════════════════════════════════════════ */
+class CalmingAudio {
+  constructor() {
+    this.ctx = null;
+    this.ambientOsc1 = null;
+    this.ambientOsc2 = null;
+    this.ambientGain = null;
+    this.ambientPlaying = false;
+  }
+
+  ensureContext() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) this.ctx = new AudioCtx();
+    }
+    if (this.ctx && this.ctx.state === "suspended") {
+      this.ctx.resume();
+    }
+  }
+
+  // Resonant Tibetan singing bowl chime with gentle harmonic decay
+  playBowl(pitch = "mid") {
+    try {
+      this.ensureContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      // 432 Hz natural calm tuning, 216 Hz deep grounding, 528 Hz clear transformation
+      const baseFreq = pitch === "deep" ? 216 : pitch === "high" ? 528 : 432;
+      const harmonics = [1, 2.76, 5.4];
+      const vols = [0.22, 0.09, 0.03];
+
+      harmonics.forEach((h, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(baseFreq * h, now);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(vols[i], now + 0.035);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + (i === 0 ? 3.4 : 1.9));
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 3.5);
+      });
+    } catch (e) {
+      console.warn("Audio chime error:", e);
+    }
+  }
+
+  // Soothing 174 Hz Solfeggio low-frequency meditation drone
+  setAmbient(enable) {
+    try {
+      this.ensureContext();
+      if (!this.ctx) return false;
+      const now = this.ctx.currentTime;
+
+      if (!enable && this.ambientGain) {
+        this.ambientGain.gain.linearRampToValueAtTime(0.0001, now + 0.9);
+        setTimeout(() => {
+          if (this.ambientOsc1) { try { this.ambientOsc1.stop(); } catch {} this.ambientOsc1 = null; }
+          if (this.ambientOsc2) { try { this.ambientOsc2.stop(); } catch {} this.ambientOsc2 = null; }
+        }, 1000);
+        this.ambientPlaying = false;
+        return false;
+      }
+
+      if (enable) {
+        if (this.ambientOsc1) { try { this.ambientOsc1.stop(); } catch {} }
+        if (this.ambientOsc2) { try { this.ambientOsc2.stop(); } catch {} }
+
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+
+        osc1.type = "sine";
+        osc1.frequency.setValueAtTime(174, now); // Solfeggio 174 Hz
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(261.63, now); // Warm C4 fifth harmonic
+
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(320, now);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(0.045, now + 2.0); // Soft, non-intrusive
+
+        osc1.connect(filter);
+        osc2.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+
+        this.ambientOsc1 = osc1;
+        this.ambientOsc2 = osc2;
+        this.ambientGain = gain;
+        this.ambientPlaying = true;
+        return true;
+      }
+    } catch (e) {
+      console.warn("Ambient drone error:", e);
+      return false;
+    }
+  }
+
+  stopAll() {
+    this.setAmbient(false);
+  }
+}
+
+const calmingAudio = new CalmingAudio();
+
+function speakVoiceCue(text) {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.82; // Gentle, unhurried pace
+    utterance.pitch = 0.96; // Warm, soothing tone
+    utterance.volume = 0.85;
+    const voices = window.speechSynthesis.getVoices();
+    const calm = voices.find(
+      (v) =>
+        v.lang.startsWith("en") &&
+        (v.name.includes("Natural") ||
+          v.name.includes("Samantha") ||
+          v.name.includes("Google") ||
+          v.name.includes("Karen"))
+    );
+    if (calm) utterance.voice = calm;
+    window.speechSynthesis.speak(utterance);
+  } catch (e) {
+    console.warn("Speech synthesis error:", e);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EXERCISE LIBRARY — WHO stress-management aligned
+   ═══════════════════════════════════════════════════════════ */
+const exercises = [
+  {
+    id: "box-breathing",
+    type: "grounding",
+    tag: "BREATHE",
+    title: "Box Breathing",
+    subtitle: "4 · 4 · 4 · 4",
+    description: "A simple breathing pattern used by athletes and first responders to calm the nervous system quickly.",
+    emoji: "🌬️",
+    duration: "2 min",
+    moods: ["rough", "low", "okay"],
+    color: "#8baed0",
+    steps: [
+      { cue: "Breathe IN", duration: 4, instruction: "Slowly fill your lungs for 4 counts." },
+      { cue: "HOLD", duration: 4, instruction: "Hold gently — no tension." },
+      { cue: "Breathe OUT", duration: 4, instruction: "Exhale slowly and completely." },
+      { cue: "HOLD", duration: 4, instruction: "Rest here before the next breath." },
+    ],
+    rounds: 4,
+    research: "Slow-paced breathing activates the parasympathetic nervous system (WHO, 2020).",
+  },
+  {
+    id: "name-the-thought",
+    type: "cognitive",
+    tag: "UNHOOK",
+    title: "Name the Thought",
+    subtitle: "Defusion exercise",
+    description: "Putting a label on a difficult thought creates distance from it, so it has less power over you.",
+    emoji: "🔖",
+    duration: "3 min",
+    moods: ["rough", "low", "okay"],
+    color: "#a796c8",
+    prompts: [
+      "What thought keeps coming back right now?",
+      "Is this a fact, a worry, or an old story?",
+      "If a close friend had this thought, what would you tell them?",
+      "Can you notice the thought without believing it completely?",
+    ],
+    examples: ["Catastrophizing", "Exam worry", "Imposter syndrome", "What-if spiral", "Self-criticism"],
+    research: "Cognitive defusion separates the self from thoughts (ACT therapy, Hayes et al.).",
+  },
+  {
+    id: "five-senses",
+    type: "grounding",
+    tag: "GROUND",
+    title: "5-4-3-2-1 Senses",
+    subtitle: "Sensory grounding",
+    description: "Anchor yourself in the present moment by noticing what's around you right now.",
+    emoji: "🌿",
+    duration: "2 min",
+    moods: ["rough", "low", "okay", "great", "good"],
+    color: "#75b88a",
+    senses: [
+      { count: 5, sense: "see", emoji: "👀", instruction: "Name 5 things you can see right now.", chips: ["Desk lamp", "Window light", "A pen", "Notebook cover", "My own hands"] },
+      { count: 4, sense: "touch", emoji: "✋", instruction: "Notice 4 textures you can feel.", chips: ["Cool table surface", "Fabric of shirt", "Smooth keycaps", "Chair cushion"] },
+      { count: 3, sense: "hear", emoji: "👂", instruction: "Identify 3 sounds around you.", chips: ["Hum of a fan", "Distant footsteps", "My breath"] },
+      { count: 2, sense: "smell", emoji: "👃", instruction: "Find 2 scents — even faint ones.", chips: ["Warm tea/coffee", "Fresh room air", "Clean paper"] },
+      { count: 1, sense: "taste", emoji: "👅", instruction: "Notice 1 thing you can taste.", chips: ["Sip of water", "Mint/tea", "Neutral clean mouth"] },
+    ],
+    research: "Grounding techniques redirect attention from distress to the present environment (SAMHSA, 2014).",
+  },
+  {
+    id: "self-compassion",
+    type: "compassion",
+    tag: "BE KIND",
+    title: "Self-Compassion Pause",
+    subtitle: "3-step pause",
+    description: "When things feel hard, turning kindness toward yourself — the way you would for a friend — can ease the load.",
+    emoji: "🫶",
+    duration: "3 min",
+    moods: ["rough", "low"],
+    color: "#e89a7c",
+    prompts: [
+      "This is a moment of real difficulty. What you're feeling is valid.",
+      "Struggling is part of being human — you're not alone in this.",
+      "What would you say to a friend going through exactly this?",
+      "Place a hand on your chest and offer yourself one kind sentence.",
+    ],
+    research: "Self-compassion reduces rumination and increases emotional resilience (Neff, 2011).",
+  },
+  {
+    id: "values-action",
+    type: "values",
+    tag: "ACT",
+    title: "One Small Action",
+    subtitle: "Values-aligned step",
+    description: "Choose one tiny thing — something that aligns with what actually matters to you — and commit to doing it today.",
+    emoji: "🌱",
+    duration: "3 min",
+    moods: ["low", "okay", "good", "great"],
+    color: "#73ae82",
+    prompts: [
+      "Name one thing that genuinely matters to you right now.",
+      "What's one tiny step toward it — small enough to actually do today?",
+      "What might get in the way? Can you prepare for that?",
+      "Commit: say it out loud or write it down.",
+    ],
+    valuesList: ["Learning 📚", "Kindness 🫶", "Health & Rest 🌱", "Connection 🫂", "Creativity 🎨", "Courage 🦁"],
+    actionExamples: ["Send 1 quick message", "Drink 1 glass of water", "Read 2 pages", "Step outside for 2 mins"],
+    research: "Values-based committed action increases psychological flexibility (Hayes, ACT).",
+  },
+  {
+    id: "making-room",
+    type: "acceptance",
+    tag: "MAKE ROOM",
+    title: "Making Room",
+    subtitle: "Somatic sensation release",
+    description: "Notice where tension is held in your body, breathe into it, and allow it to be there without fighting it.",
+    emoji: "🌊",
+    duration: "2 min",
+    moods: ["rough", "low", "okay"],
+    color: "#6fa89c",
+    prompts: [
+      "Scan your body right now. Where do you feel the tension most (shoulders, chest, jaw, stomach)?",
+      "Imagine gently breathing into and around that physical spot — not to push it away, but to give it space.",
+      "Can you allow this physical sensation to simply exist for just 30 seconds, like clouds in the sky?",
+      "Gently drop your shoulders, unclench your jaw, and let your hands rest open.",
+    ],
+    bodyChips: ["Jaw & Face", "Neck & Shoulders", "Chest / Heart", "Stomach", "Hands & Arms"],
+    research: "Somatic acceptance reduces secondary emotional distress caused by resisting unpleasant sensations (WHO, 2020).",
+  },
+  {
+    id: "gratitude-noticing",
+    type: "positive",
+    tag: "NOTICE",
+    title: "Three Good Things",
+    subtitle: "Gratitude practice",
+    description: "Briefly noticing small positives trains the brain to spot them more easily over time.",
+    emoji: "✨",
+    duration: "2 min",
+    moods: ["okay", "good", "great"],
+    color: "#f2b84b",
+    prompts: [
+      "Name one small thing that went okay today — even tiny counts.",
+      "Was there a moment, however brief, that felt good or neutral?",
+      "Think of one person or thing you're quietly glad exists.",
+      "Write or think of all three — let them land for a moment.",
+    ],
+    research: "Gratitude practices increase positive affect and life satisfaction (Emmons & McCullough, 2003).",
+  },
+];
+
+function getExercisesForMood(mood) {
+  const matched = exercises.filter((ex) => ex.moods.includes(mood));
+  // Return matched first, or all if none matched
+  return matched.length >= 3 ? matched.slice(0, 3) : exercises.slice(0, 3);
+}
 
 const moods = [
   { value: "great", emoji: "😀", label: "Great", title: "Feeling good", message: "Looks like today has some good energy.", color: "yellow", accent: "#f2b84b" },
@@ -16,15 +309,26 @@ const moods = [
 
 const factors = [
   { value: "studies", emoji: "📚", label: "Studies", description: "Classes, assignments or exams" },
-  { value: "sleep", emoji: "", label: "Sleep", description: "Rest, routine or tiredness" },
+  { value: "sleep", emoji: "🥱", label: "Sleep", description: "Rest, routine or tiredness" },
   { value: "home", emoji: "🏠", label: "Home", description: "Missing home or family" },
-  { value: "friends", emoji: "", label: "Friends", description: "People or relationships" },
+  { value: "friends", emoji: "🫂", label: "Friends", description: "People or relationships" },
   { value: "self", emoji: "🌱", label: "Just me", description: "How you've been feeling" },
   { value: "other", emoji: "✦", label: "Something else", description: "Anything not listed here" },
 ];
 
 function CheckIn() {
-  const [step, setStep] = useState(1);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // Allow entering directly to Practice via ?step=5 or ?step=practice or route state
+  const queryStep = searchParams.get("step");
+  const initialStep =
+    queryStep === "practice" || queryStep === "5"
+      ? 5
+      : location.state?.step || 1;
+
+  const [step, setStep] = useState(initialStep);
   const [mood, setMood] = useState("");
   const [selectedFactors, setSelectedFactors] = useState([]);
   const [reflection, setReflection] = useState("");
@@ -32,12 +336,57 @@ function CheckIn() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
+  // ── Step 5: Micro-Intervention / Practice state ──
+  const [selectedExercise, setSelectedExercise] = useState(() => {
+    const exId = searchParams.get("exercise");
+    return exId ? exercises.find((e) => e.id === exId) || null : null;
+  });
+  const [exerciseActive, setExerciseActive] = useState(false);
+  const [exerciseStep, setExerciseStep] = useState(0);   // which prompt/step inside the exercise
+  const [exerciseDone, setExerciseDone] = useState(false);
+  const [beforeRating, setBeforeRating] = useState(null);
+  const [afterRating, setAfterRating] = useState(null);
+  const [breathPhase, setBreathPhase] = useState(0);     // for box-breathing animation
+  const [breathCount, setBreathCount] = useState(0);     // seconds ticking
+  const [breathRound, setBreathRound] = useState(0);
+  const [isBreathPaused, setIsBreathPaused] = useState(false);
+  const [userNote, setUserNote] = useState("");           // per-prompt notes
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiReply, setAiReply] = useState("");
+
+  // ── Optional Audio & Experience state ──
+  const [soundEnabled, setSoundEnabled] = useState(false);   // Singing bowl chime at phase/step transitions
+  const [voiceEnabled, setVoiceEnabled] = useState(false);   // Spoken guidance cues
+  const [ambientEnabled, setAmbientEnabled] = useState(false); // Soothing 174 Hz Solfeggio drone
+  const [activeCategory, setActiveCategory] = useState("recommended");
+  const [practiceSaved, setPracticeSaved] = useState(false);
+
   const pageRef = useRef(null);
   const sceneRef = useRef(null);
   const glowRef = useRef(null);
   const emojiRef = useRef(null);
+  const breathTimerRef = useRef(null);
 
   const selectedMood = moods.find((item) => item.value === mood) || moods[1];
+  const moodExercises = getExercisesForMood(mood || "okay");
+
+  // Filtered exercises for curated library
+  const displayedExercises =
+    activeCategory === "recommended"
+      ? getExercisesForMood(mood || "okay")
+      : activeCategory === "all"
+      ? exercises
+      : exercises.filter((ex) => ex.type === activeCategory);
+
+  // Stop all audio on unmount
+  useEffect(() => {
+    return () => {
+      calmingAudio.stopAll();
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const page = pageRef.current;
@@ -99,7 +448,7 @@ function CheckIn() {
       }
       return;
     }
-    if (step < 4) setStep((current) => current + 1);
+    if (step < 5) setStep((current) => current + 1);
   }
 
   function previousStep() {
@@ -108,10 +457,159 @@ function CheckIn() {
   }
 
   function restart() {
-    setStep(1); setMood(""); setSelectedFactors([]); setReflection(""); setShowMoodHint(false);
+    calmingAudio.stopAll();
+    if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
+    setStep(1);
+    setMood(""); setSelectedFactors([]); setReflection(""); setShowMoodHint(false);
+    setSelectedExercise(null); setExerciseActive(false); setExerciseStep(0);
+    setExerciseDone(false); setBeforeRating(null); setAfterRating(null);
+    setBreathPhase(0); setBreathCount(0); setBreathRound(0); setIsBreathPaused(false);
+    setUserNote(""); setAiLoading(false); setAiReply(""); setPracticeSaved(false);
+    if (breathTimerRef.current) clearInterval(breathTimerRef.current);
   }
 
-  const progress = ((step - 1) / 3) * 100;
+  // ── Exercise helpers ──────────────────────────────────────
+  function startExercise(ex) {
+    setSelectedExercise(ex);
+    setExerciseStep(0);
+    setExerciseDone(false);
+    setUserNote("");
+    setAiReply("");
+    setBreathPhase(0);
+    setBreathCount(ex.steps?.[0]?.duration ?? 4);
+    setBreathRound(0);
+    setIsBreathPaused(false);
+    setExerciseActive(true);
+    setPracticeSaved(false);
+
+    if (soundEnabled) calmingAudio.playBowl("high");
+    if (voiceEnabled) speakVoiceCue(`Starting ${ex.title}. ${ex.subtitle}`);
+  }
+
+  function nextExerciseStep() {
+    const ex = selectedExercise;
+    if (!ex) return;
+    const total = ex.prompts?.length || ex.senses?.length || (ex.steps?.length * ex.rounds) || 1;
+    if (exerciseStep + 1 >= total) {
+      setExerciseDone(true);
+      if (soundEnabled) calmingAudio.playBowl("high");
+      if (voiceEnabled) speakVoiceCue("Exercise complete. Notice how you feel.");
+    } else {
+      setExerciseStep((s) => s + 1);
+      setUserNote("");
+      if (soundEnabled) calmingAudio.playBowl("mid");
+      if (voiceEnabled) {
+        const nextPrompt = ex.prompts ? ex.prompts[exerciseStep + 1] : ex.senses ? `${ex.senses[exerciseStep + 1].count} things you can ${ex.senses[exerciseStep + 1].sense}` : "";
+        if (nextPrompt) speakVoiceCue(nextPrompt);
+      }
+    }
+  }
+
+  function resetBreathing() {
+    setBreathPhase(0);
+    setBreathCount(selectedExercise?.steps?.[0]?.duration ?? 4);
+    setBreathRound(0);
+    setIsBreathPaused(false);
+    if (soundEnabled) calmingAudio.playBowl("mid");
+  }
+
+  // Box-breathing tick
+  useEffect(() => {
+    if (!exerciseActive || !selectedExercise?.steps) return;
+    if (exerciseDone) { clearInterval(breathTimerRef.current); return; }
+    if (isBreathPaused) {
+      clearInterval(breathTimerRef.current);
+      return;
+    }
+
+    const steps = selectedExercise.steps;
+    const rounds = selectedExercise.rounds;
+    breathTimerRef.current = setInterval(() => {
+      setBreathCount((prev) => {
+        if (prev <= 1) {
+          // move to next phase
+          setBreathPhase((ph) => {
+            const nextPh = (ph + 1) % steps.length;
+            if (nextPh === 0) {
+              setBreathRound((r) => {
+                const nextR = r + 1;
+                if (nextR >= rounds) {
+                  setExerciseDone(true);
+                  if (soundEnabled) calmingAudio.playBowl("high");
+                  if (voiceEnabled) speakVoiceCue("Exercise complete. Notice how your body feels.");
+                  clearInterval(breathTimerRef.current);
+                }
+                return nextR;
+              });
+            }
+            setBreathCount(steps[nextPh].duration);
+
+            if (soundEnabled) {
+              calmingAudio.playBowl(nextPh === 0 ? "high" : nextPh === 2 ? "deep" : "mid");
+            }
+            if (voiceEnabled) {
+              speakVoiceCue(steps[nextPh].cue);
+            }
+            return nextPh;
+          });
+          return steps[0].duration;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(breathTimerRef.current);
+  }, [exerciseActive, selectedExercise, exerciseDone, isBreathPaused, soundEnabled, voiceEnabled]);
+
+  function handleRecordAfterRating(ratingNum) {
+    setAfterRating(ratingNum);
+    setPracticeSaved(true);
+    try {
+      const stored = JSON.parse(localStorage.getItem("antarang_practice_log") || "[]");
+      const record = {
+        id: Date.now(),
+        exerciseId: selectedExercise?.id,
+        exerciseTitle: selectedExercise?.title,
+        exerciseEmoji: selectedExercise?.emoji,
+        beforeRating,
+        afterRating: ratingNum,
+        mood: mood || "not specified",
+        timestamp: new Date().toISOString(),
+        dateStr: new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+      };
+      localStorage.setItem("antarang_practice_log", JSON.stringify([record, ...stored.slice(0, 19)]));
+    } catch (e) {
+      console.warn("Storage error:", e);
+    }
+  }
+
+  async function askAI() {
+    if (aiLoading) return;
+    setAiLoading(true);
+    setAiReply("");
+    const ex = selectedExercise;
+    const ratingLine = afterRating != null
+      ? `After the exercise their mood rating went from ${beforeRating ?? "?"}/5 to ${afterRating}/5.`
+      : `Before the exercise their mood rating was ${beforeRating ?? "?"}/5.`;
+    const prompt = `A student just completed a check-in and reported feeling ${mood}${selectedFactors.length ? ` with ${selectedFactors.join(", ")} on their mind` : ""}. They then tried the "${ex?.title}" exercise (${ex?.type}). ${ratingLine}${userNote ? ` Their note: "${userNote}".` : ""} Give them 2–3 warm, practical sentences: acknowledge how they feel, name one thing that might help today, and end with a gentle encouragement. Keep it brief and human.`;
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ message: prompt }),
+      });
+      const data = await response.json();
+      setAiReply(data.reply || data.message || "I'm here with you.");
+    } catch {
+      setAiReply("Couldn't reach Antarang AI right now — but you did something good for yourself today.");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  // 5 steps total (Mood, Context, Reflect, Done, Practice)
+  const totalSteps = 5;
+  const progress = ((step - 1) / (totalSteps - 1)) * 100;
 
   return (
     <div ref={pageRef} className={`checkin-page checkin-rock-page checkin-step-${step}`} style={{ "--mood-accent": selectedMood.accent }}>
@@ -136,21 +634,34 @@ function CheckIn() {
               <circle className="orb-track" cx="50" cy="50" r="43" />
               <circle className="orb-progress" cx="50" cy="50" r="43" style={{ strokeDashoffset: 270 - (270 * progress) / 100 }} />
             </svg>
-            <div><strong>0{step}</strong><span>/ 04</span></div>
+            <div><strong>0{step}</strong><span>/ 05</span></div>
           </div>
-          <small>{step === 4 ? "COMPLETE" : "YOUR MOMENT"}</small>
+          <small>{step === 5 ? "PRACTICE" : step === 4 ? "COMPLETE" : "YOUR MOMENT"}</small>
         </div>
       </header>
 
       <div className="checkin-step-strip">
-        {[["01", "Mood"], ["02", "Context"], ["03", "Reflect"], ["04", "Done"]].map(([number, label], index) => {
-          const active = step === index + 1;
-          const passed = step > index + 1;
+        {[["01", "Mood"], ["02", "Context"], ["03", "Reflect"], ["04", "Done"], ["05", "Practice"]].map(([number, label], index) => {
+          const stepNum = index + 1;
+          const active = step === stepNum;
+          const passed = step > stepNum;
           return (
-            <div key={number} className={`checkin-step-item ${active ? "active" : ""} ${passed ? "passed" : ""}`}>
+            <button
+              key={number}
+              type="button"
+              className={`checkin-step-item ${active ? "active" : ""} ${passed ? "passed" : ""}`}
+              onClick={() => {
+                if (!mood && stepNum > 1 && stepNum < 5) {
+                  setShowMoodHint(true);
+                  return;
+                }
+                setStep(stepNum);
+              }}
+              title={`Go to step ${number}: ${label}`}
+            >
               <span>{passed ? "✓" : number}</span>
               <label>{label}</label>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -318,21 +829,568 @@ function CheckIn() {
               </div>
               <div className="complete-rock-actions">
                 <Button variant="secondary" onClick={restart}>Check in again</Button>
-                <Link
-                  to="/app/chat"
-                  state={{
-                    initialMessage: `I just checked in as ${selectedMood.label.toLowerCase()}${selectedFactors.length ? `, with ${selectedFactors.join(", ")} on my mind` : ""}. ${
-                      reflection.trim()
-                        ? `My private note was: "${reflection.trim()}". `
-                        : ""
-                    }Please help me reflect on this check-in and suggest one gentle, practical next step.`,
-                  }}
-                >
-                  <Button variant="secondary">Talk about this with AI</Button>
-                </Link>
-                <Link to="/app/journey"><Button>See My Journey <span>→</span></Button></Link>
+                <Button onClick={() => setStep(5)}>Try a short exercise <span>→</span></Button>
+                <Link to="/app/journey"><Button variant="secondary">See My Journey</Button></Link>
               </div>
             </div>
+          </section>
+        )}
+
+        {step === 5 && (
+          <section className="intervention-rock">
+
+            {/* ── LEFT: exercise picker or active exercise ── */}
+            <div className="intervention-left">
+
+              {!exerciseActive ? (
+                /* PICKER & CURATED LIBRARY */
+                <>
+                  <div className="intervention-head-row">
+                    <div>
+                      <span className="section-kicker">05 · PRACTICE & MICRO-INTERVENTIONS</span>
+                      <h2>A short exercise<br /><em>for right now.</em></h2>
+                    </div>
+                  </div>
+
+                  <p className="intervention-intro">
+                    Rather than generic advice, try a structured 2–3 minute exercise based on the
+                    World Health Organization (WHO) stress-management guide and ACT therapy.
+                  </p>
+
+                  {/* ── Audio Controls Bar ── */}
+                  <div className="practice-audio-bar">
+                    <span className="audio-bar-title">🎧 Optional Audio Guide</span>
+                    <div className="audio-bar-toggles">
+                      <button
+                        type="button"
+                        className={`audio-toggle-pill ${soundEnabled ? "active" : ""}`}
+                        onClick={() => {
+                          const next = !soundEnabled;
+                          setSoundEnabled(next);
+                          if (next) calmingAudio.playBowl("high");
+                        }}
+                        title="Plays gentle singing bowl chimes at transitions"
+                      >
+                        <span>{soundEnabled ? "🔔" : "🔕"}</span> Chimes {soundEnabled ? "ON" : "OFF"}
+                      </button>
+                      <button
+                        type="button"
+                        className={`audio-toggle-pill ${voiceEnabled ? "active" : ""}`}
+                        onClick={() => {
+                          const next = !voiceEnabled;
+                          setVoiceEnabled(next);
+                          if (next) speakVoiceCue("Voice guidance ready.");
+                        }}
+                        title="Gentle spoken narration of breathing cues and prompts"
+                      >
+                        <span>{voiceEnabled ? "🗣️" : "💬"}</span> Voice {voiceEnabled ? "ON" : "OFF"}
+                      </button>
+                      <button
+                        type="button"
+                        className={`audio-toggle-pill ${ambientEnabled ? "active" : ""}`}
+                        onClick={() => {
+                          const next = !ambientEnabled;
+                          setAmbientEnabled(next);
+                          calmingAudio.setAmbient(next);
+                        }}
+                        title="Plays a soft 174Hz calm drone in the background"
+                      >
+                        <span>{ambientEnabled ? "🌿" : "🌱"}</span> Ambient Hum {ambientEnabled ? "ON" : "OFF"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* ── Before rating ── */}
+                  <div className="rating-block">
+                    <p className="rating-label">
+                      How are you feeling right now?{" "}
+                      <small>
+                        {beforeRating
+                          ? `(Recorded: ${beforeRating}/5 · ${beforeRating === 1 ? "Overwhelmed" : beforeRating === 2 ? "Heavy" : beforeRating === 3 ? "Steady" : beforeRating === 4 ? "Calmer" : "Grounded"})`
+                          : "(1 = very low / overwhelmed · 5 = grounded / good)"}
+                      </small>
+                    </p>
+                    <div className="rating-pips">
+                      {[
+                        { val: 1, label: "Overwhelmed" },
+                        { val: 2, label: "Heavy" },
+                        { val: 3, label: "Steady" },
+                        { val: 4, label: "Calmer" },
+                        { val: 5, label: "Grounded" },
+                      ].map((item) => (
+                        <button
+                          key={item.val}
+                          type="button"
+                          className={`rating-pip ${beforeRating === item.val ? "active" : ""}`}
+                          onClick={() => setBeforeRating(item.val)}
+                          title={`${item.val} - ${item.label}`}
+                        >
+                          <span>{item.val}</span>
+                          <span className="rating-pip-text">{item.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {beforeRating !== null && (
+                      <p className="rating-set">
+                        ✓ Noted: <strong>{beforeRating}/5</strong> before starting. We'll check in afterward to notice any shift.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* ── Library Category Filter Tabs ── */}
+                  <div className="ex-filter-bar">
+                    <button
+                      type="button"
+                      className={`ex-filter-btn ${activeCategory === "recommended" ? "active" : ""}`}
+                      onClick={() => setActiveCategory("recommended")}
+                    >
+                      ✦ Recommended for You
+                    </button>
+                    <button
+                      type="button"
+                      className={`ex-filter-btn ${activeCategory === "all" ? "active" : ""}`}
+                      onClick={() => setActiveCategory("all")}
+                    >
+                      All Exercises ({exercises.length})
+                    </button>
+                    <button
+                      type="button"
+                      className={`ex-filter-btn ${activeCategory === "grounding" ? "active" : ""}`}
+                      onClick={() => setActiveCategory("grounding")}
+                    >
+                      🌬️ Grounding
+                    </button>
+                    <button
+                      type="button"
+                      className={`ex-filter-btn ${activeCategory === "cognitive" ? "active" : ""}`}
+                      onClick={() => setActiveCategory("cognitive")}
+                    >
+                      🔖 Unhooking
+                    </button>
+                    <button
+                      type="button"
+                      className={`ex-filter-btn ${activeCategory === "compassion" ? "active" : ""}`}
+                      onClick={() => setActiveCategory("compassion")}
+                    >
+                      🫶 Self-Compassion
+                    </button>
+                    <button
+                      type="button"
+                      className={`ex-filter-btn ${activeCategory === "values" ? "active" : ""}`}
+                      onClick={() => setActiveCategory("values")}
+                    >
+                      🌱 Values Action
+                    </button>
+                    <button
+                      type="button"
+                      className={`ex-filter-btn ${activeCategory === "acceptance" ? "active" : ""}`}
+                      onClick={() => setActiveCategory("acceptance")}
+                    >
+                      🌊 Making Room
+                    </button>
+                  </div>
+
+                  {/* ── Exercise Cards Grid ── */}
+                  <div className="exercise-cards">
+                    {displayedExercises.map((ex) => (
+                      <button
+                        key={ex.id}
+                        type="button"
+                        className="exercise-card"
+                        style={{ "--card-color": ex.color }}
+                        onClick={() => startExercise(ex)}
+                      >
+                        <div className="ex-card-top">
+                          <span className="ex-card-emoji">{ex.emoji}</span>
+                          <span className="ex-card-tag">{ex.tag}</span>
+                          <span className="ex-card-duration">⏱ {ex.duration}</span>
+                        </div>
+                        <strong className="ex-card-title">{ex.title}</strong>
+                        <small className="ex-card-sub">{ex.subtitle}</small>
+                        <p className="ex-card-desc">{ex.description}</p>
+                        <div className="ex-card-research">{ex.research}</div>
+                        <span className="ex-card-start">Start exercise →</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="intervention-actions">
+                    <Button variant="secondary" onClick={() => setStep(4)}>← Back to Check-in</Button>
+                    <Link to="/app/journey"><Button>Finish & See My Journey</Button></Link>
+                  </div>
+                </>
+              ) : (
+                /* ACTIVE EXERCISE VIEW */
+                <>
+                  <div className="active-ex-header">
+                    <div>
+                      <span className="section-kicker">05 · {selectedExercise.tag}</span>
+                      <h2>{selectedExercise.title}<br /><em>{selectedExercise.subtitle}</em></h2>
+                    </div>
+
+                    {/* Quick in-exercise audio toggles */}
+                    <div className="active-audio-controls">
+                      <button
+                        type="button"
+                        className={`audio-mini-btn ${soundEnabled ? "active" : ""}`}
+                        onClick={() => {
+                          const next = !soundEnabled;
+                          setSoundEnabled(next);
+                          if (next) calmingAudio.playBowl("high");
+                        }}
+                        title="Toggle singing bowl chimes"
+                      >
+                        {soundEnabled ? "🔔 Chimes" : "🔕 Chimes"}
+                      </button>
+                      <button
+                        type="button"
+                        className={`audio-mini-btn ${voiceEnabled ? "active" : ""}`}
+                        onClick={() => {
+                          const next = !voiceEnabled;
+                          setVoiceEnabled(next);
+                          if (next) speakVoiceCue("Voice active.");
+                        }}
+                        title="Toggle spoken cues"
+                      >
+                        {voiceEnabled ? "🗣️ Voice" : "💬 Voice"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {!exerciseDone ? (
+                    <>
+                      {/* Box Breathing */}
+                      {selectedExercise.id === "box-breathing" && (
+                        <div className="breath-zone">
+                          <div
+                            className="breath-ring"
+                            style={{
+                              "--bscale": breathPhase === 0 ? 1.32 : breathPhase === 2 ? 0.82 : 1.05,
+                              "--bcolor": selectedExercise.color,
+                            }}
+                          >
+                            <div className="breath-inner">
+                              <strong className="breath-cue">{selectedExercise.steps[breathPhase].cue}</strong>
+                              <span className="breath-count">{breathCount}</span>
+                            </div>
+                          </div>
+                          <p className="breath-instruction">{selectedExercise.steps[breathPhase].instruction}</p>
+
+                          <div className="breath-controls">
+                            <button
+                              type="button"
+                              className="breath-ctrl-btn"
+                              onClick={() => setIsBreathPaused((p) => !p)}
+                            >
+                              {isBreathPaused ? "▶ Resume" : "⏸ Pause"}
+                            </button>
+                            <button
+                              type="button"
+                              className="breath-ctrl-btn"
+                              onClick={resetBreathing}
+                            >
+                              ↺ Reset
+                            </button>
+                          </div>
+
+                          <div className="breath-progress">
+                            {Array.from({ length: selectedExercise.rounds }).map((_, i) => (
+                              <span
+                                key={i}
+                                className={`breath-round-dot ${
+                                  i < breathRound ? "done" : i === breathRound ? "active" : ""
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <small className="breath-round-label">
+                            Round {breathRound + 1} of {selectedExercise.rounds}
+                          </small>
+                        </div>
+                      )}
+
+                      {/* Prompt-based exercises (Name the thought, Self-compassion, Values, Making Room, Gratitude) */}
+                      {selectedExercise.prompts && (
+                        <div className="prompt-zone">
+                          <div className="prompt-number">
+                            STEP {String(exerciseStep + 1).padStart(2, "0")} / {String(selectedExercise.prompts.length).padStart(2, "0")}
+                          </div>
+                          <p className="prompt-text">{selectedExercise.prompts[exerciseStep]}</p>
+
+                          {/* Exercise-specific helpers & suggestions */}
+                          {selectedExercise.id === "name-the-thought" && exerciseStep === 0 && selectedExercise.examples && (
+                            <div className="prompt-chips-wrap">
+                              <span className="prompt-chip-hint">Common loops:</span>
+                              {selectedExercise.examples.map((exmp) => (
+                                <button
+                                  key={exmp}
+                                  type="button"
+                                  className="prompt-suggestion-chip"
+                                  onClick={() => setUserNote((prev) => (prev ? `${prev}, ${exmp}` : exmp))}
+                                >
+                                  +{exmp}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          {selectedExercise.id === "name-the-thought" && userNote.trim().length > 3 && (
+                            <div className="defusion-mirror">
+                              <span className="mirror-tag">✦ UNHOOKING DEFUSION</span>
+                              <p>
+                                Reframe: <em>"I notice I am having the thought that {userNote.trim().replace(/^i am /i, "").replace(/^i feel like /i, "")}."</em>
+                              </p>
+                              <small>Notice the thought is just mental words — not an objective fact.</small>
+                            </div>
+                          )}
+
+                          {selectedExercise.id === "values-action" && exerciseStep === 0 && selectedExercise.valuesList && (
+                            <div className="prompt-chips-wrap">
+                              <span className="prompt-chip-hint">Pick what matters:</span>
+                              {selectedExercise.valuesList.map((val) => (
+                                <button
+                                  key={val}
+                                  type="button"
+                                  className="prompt-suggestion-chip"
+                                  onClick={() => setUserNote(val)}
+                                >
+                                  {val}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          {selectedExercise.id === "values-action" && exerciseStep === 1 && selectedExercise.actionExamples && (
+                            <div className="prompt-chips-wrap">
+                              <span className="prompt-chip-hint">Tiny step ideas:</span>
+                              {selectedExercise.actionExamples.map((act) => (
+                                <button
+                                  key={act}
+                                  type="button"
+                                  className="prompt-suggestion-chip"
+                                  onClick={() => setUserNote(act)}
+                                >
+                                  +{act}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          {selectedExercise.id === "making-room" && exerciseStep === 0 && selectedExercise.bodyChips && (
+                            <div className="prompt-chips-wrap">
+                              <span className="prompt-chip-hint">Check-in points:</span>
+                              {selectedExercise.bodyChips.map((chip) => (
+                                <button
+                                  key={chip}
+                                  type="button"
+                                  className="prompt-suggestion-chip"
+                                  onClick={() => setUserNote((prev) => (prev ? `${prev}, ${chip}` : chip))}
+                                >
+                                  +{chip}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          <textarea
+                            className="prompt-note"
+                            placeholder="Type your reflection here — or simply sit with it quietly."
+                            value={userNote}
+                            onChange={(e) => setUserNote(e.target.value)}
+                            rows={3}
+                          />
+
+                          <div className="prompt-actions-row">
+                            <Button onClick={nextExerciseStep}>
+                              {exerciseStep + 1 < selectedExercise.prompts.length ? "Next prompt →" : "Finish exercise →"}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 5-senses exercise */}
+                      {selectedExercise.senses && (
+                        <div className="prompt-zone">
+                          <div className="sense-header">
+                            <div className="sense-emoji">{selectedExercise.senses[exerciseStep].emoji}</div>
+                            <div className="prompt-number">
+                              SENSE {exerciseStep + 1} / {selectedExercise.senses.length}
+                            </div>
+                          </div>
+                          <p className="prompt-text">
+                            <strong>
+                              {selectedExercise.senses[exerciseStep].count} things you can {selectedExercise.senses[exerciseStep].sense}
+                            </strong>
+                          </p>
+                          <p className="prompt-sub">{selectedExercise.senses[exerciseStep].instruction}</p>
+
+                          {selectedExercise.senses[exerciseStep].chips && (
+                            <div className="prompt-chips-wrap">
+                              <span className="prompt-chip-hint">Quick tap ideas:</span>
+                              {selectedExercise.senses[exerciseStep].chips.map((chip) => (
+                                <button
+                                  key={chip}
+                                  type="button"
+                                  className="prompt-suggestion-chip"
+                                  onClick={() => setUserNote((prev) => (prev ? `${prev}, ${chip}` : chip))}
+                                >
+                                  +{chip}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          <textarea
+                            className="prompt-note"
+                            placeholder="Name them here..."
+                            value={userNote}
+                            onChange={(e) => setUserNote(e.target.value)}
+                            rows={3}
+                          />
+
+                          <div className="prompt-actions-row">
+                            <Button onClick={nextExerciseStep}>
+                              {exerciseStep + 1 < selectedExercise.senses.length ? "Next sense →" : "Done →"}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    /* DONE — After-rating & AI Reflection */
+                    <div className="exercise-done">
+                      <div className="done-check">✓</div>
+                      <p className="done-message">You finished <strong>{selectedExercise.title}</strong>.</p>
+                      <small className="done-research">{selectedExercise.research}</small>
+
+                      {/* After rating */}
+                      <div className="rating-block">
+                        <p className="rating-label">
+                          How do you feel <em>now</em>?{" "}
+                          <small>
+                            {afterRating
+                              ? `(Recorded: ${afterRating}/5 · ${afterRating === 1 ? "Overwhelmed" : afterRating === 2 ? "Heavy" : afterRating === 3 ? "Steady" : afterRating === 4 ? "Calmer" : "Grounded"})`
+                              : "(1 = very low / overwhelmed · 5 = grounded / good)"}
+                          </small>
+                        </p>
+                        <div className="rating-pips">
+                          {[
+                            { val: 1, label: "Overwhelmed" },
+                            { val: 2, label: "Heavy" },
+                            { val: 3, label: "Steady" },
+                            { val: 4, label: "Calmer" },
+                            { val: 5, label: "Grounded" },
+                          ].map((item) => (
+                            <button
+                              key={item.val}
+                              type="button"
+                              className={`rating-pip ${afterRating === item.val ? "active" : ""}`}
+                              onClick={() => handleRecordAfterRating(item.val)}
+                              title={`${item.val} - ${item.label}`}
+                            >
+                              <span>{item.val}</span>
+                              <span className="rating-pip-text">{item.label}</span>
+                            </button>
+                          ))}
+                        </div>
+
+                        {beforeRating && afterRating && (
+                          <div className="rating-delta-card">
+                            <p className="rating-delta">
+                              {afterRating > beforeRating
+                                ? `↑ Up ${afterRating - beforeRating} point${afterRating - beforeRating > 1 ? "s" : ""} (${beforeRating}/5 → ${afterRating}/5) — Intentional pausing shifted your nervous system.`
+                                : afterRating < beforeRating
+                                ? `That felt harder (${beforeRating}/5 → ${afterRating}/5). In mindfulness, suppressed feelings sometimes rise first before they settle. That is okay too.`
+                                : `Steady at ${afterRating}/5 — Consistency builds psychological flexibility. Showing up for yourself is the real practice.`}
+                            </p>
+                          </div>
+                        )}
+
+                        {practiceSaved && (
+                          <div className="practice-saved-badge">
+                            ✓ Saved to your personal practice log
+                          </div>
+                        )}
+                      </div>
+
+                      {/* AI insight button */}
+                      <button
+                        type="button"
+                        className="ai-insight-btn"
+                        onClick={askAI}
+                        disabled={aiLoading}
+                      >
+                        {aiLoading ? (
+                          <><span className="ai-spin" /> Thinking with Antarang AI...</>
+                        ) : (
+                          <>✦ Get a supportive thought from Antarang AI</>
+                        )}
+                      </button>
+
+                      {aiReply && (
+                        <div className="ai-reply-card">
+                          <span className="ai-reply-tag">✦ Antarang AI Reflection</span>
+                          <p>{aiReply}</p>
+                          <Link
+                            to="/app/chat"
+                            state={{
+                              initialMessage: `I just completed the "${selectedExercise.title}" exercise (${selectedExercise.type}) after feeling ${mood}. ${aiReply} Can we explore this further?`,
+                            }}
+                            className="ai-reply-link"
+                          >
+                            Continue in Antarang AI →
+                          </Link>
+                        </div>
+                      )}
+
+                      <div className="intervention-actions" style={{ marginTop: "24px" }}>
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            setExerciseActive(false);
+                            setExerciseDone(false);
+                            setAfterRating(null);
+                          }}
+                        >
+                          Try another exercise
+                        </Button>
+                        <Button onClick={restart}>Finish & Start fresh</Button>
+                        <Link to="/app/journey">
+                          <Button variant="secondary">View My Journey →</Button>
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* ── RIGHT: ambient art & science panel ── */}
+            <div className="intervention-art">
+              <div className="int-art-ring ring-a" />
+              <div className="int-art-ring ring-b" />
+              <div className="int-art-center">
+                <span className="int-art-emoji">
+                  {selectedExercise ? selectedExercise.emoji : "🌿"}
+                </span>
+              </div>
+              <div className="int-art-label">
+                <small>A MOMENT FOR YOURSELF</small>
+                <p>Skill practice, not performance.</p>
+              </div>
+
+              {selectedExercise && (
+                <div className="int-art-infocard">
+                  <strong>{selectedExercise.title}</strong>
+                  <p>{selectedExercise.research}</p>
+                </div>
+              )}
+
+              <div className="int-research-strip">
+                <span>WHO 2020 · ACT · Mindfulness-Based CBT</span>
+              </div>
+            </div>
+
           </section>
         )}
       </main>
@@ -393,9 +1451,9 @@ function CheckIn() {
         .checkin-progress-orb small { font-size: 8px; font-weight: 800; letter-spacing: 0.16em; color: #8b9189; }
 
         /* ===== STEPS & PROGRESS ===== */
-        .checkin-step-strip { flex: 0 0 auto; width: 100%; margin: 0 0 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .checkin-step-item { display: flex; align-items: center; gap: 9px; color: #a2a69f; font-size: 11px; font-weight: 700; transition: color 0.35s ease, transform 0.35s ease; }
-        .checkin-step-item span { display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid #dddcd3; border-radius: 50%; background: rgba(255,255,255,0.55); font-size: 9px; transition: all 0.35s ease; }
+        .checkin-step-strip { flex: 0 0 auto; width: 100%; margin: 0 0 8px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+        .checkin-step-item { display: flex; align-items: center; gap: 9px; color: #a2a69f; font-size: 11px; font-weight: 700; transition: color 0.35s ease, transform 0.35s ease; border: none; background: transparent; cursor: pointer; padding: 0; font-family: inherit; text-align: left; }
+        .checkin-step-item span { display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid #dddcd3; border-radius: 50%; background: rgba(255,255,255,0.55); font-size: 9px; transition: all 0.35s ease; flex-shrink: 0; }
         .checkin-step-item.active { color: #344138; transform: translateY(-1px); }
         .checkin-step-item.active span { border-color: var(--mood-accent); background: var(--mood-accent); color: white; box-shadow: 0 7px 20px color-mix(in srgb, var(--mood-accent) 30%, transparent); }
         .checkin-step-item.passed { color: #728578; }
@@ -407,7 +1465,7 @@ function CheckIn() {
         /* ===== MAIN STAGE (FLEX GROW) ===== */
         .checkin-stage { flex: 1 1 auto; width: 100%; min-height: 0; overflow: hidden; position: relative; }
 
-        .mood-rock, .context-rock, .reflection-rock, .complete-rock {
+        .mood-rock, .context-rock, .reflection-rock, .complete-rock, .intervention-rock {
           width: 100%; height: 100%; min-height: 0;
           display: grid; align-items: center;
           animation: checkinStageIn 0.65s cubic-bezier(.22,1,.36,1);
@@ -531,6 +1589,254 @@ function CheckIn() {
         .summary-tags span { padding: 6px 8px; border-radius: 99px; background: #edf3eb; color: #657768; font-size: 9px; }
         .summary-block:last-child { grid-column: 1 / -1; }
         .summary-block p { margin: 8px 0 0; color: #667169; font-size: 11px; line-height: 1.55; }
+
+        /* ===== STEP 5: PRACTICE & MICRO-INTERVENTIONS ===== */
+        .intervention-rock {
+          grid-template-columns: 1.25fr 0.75fr;
+          gap: 32px;
+          height: 100%;
+          min-height: 0;
+          align-items: stretch;
+        }
+
+        .intervention-left {
+          height: 100%;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          overflow-y: auto;
+          padding-right: 14px;
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5cb transparent;
+        }
+        .intervention-left::-webkit-scrollbar { width: 6px; }
+        .intervention-left::-webkit-scrollbar-thumb { background: #cbd5cb; border-radius: 99px; }
+
+        .intervention-head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 6px; flex: 0 0 auto; }
+        .intervention-head-row h2 { margin: 6px 0 0; color: #29372e; font-size: clamp(26px, 2.6vw, 38px); line-height: 1; letter-spacing: -0.05em; }
+        .intervention-head-row h2 em { color: #71987a; font-family: Georgia, serif; font-weight: 400; }
+        .intervention-intro { margin: 6px 0 16px; color: #718078; font-size: 13px; line-height: 1.55; max-width: 580px; flex: 0 0 auto; }
+
+        /* Audio toolbar */
+        .practice-audio-bar {
+          display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+          padding: 10px 14px; border-radius: 16px; border: 1px solid #e1ded4; background: rgba(255,255,255,0.65);
+          backdrop-filter: blur(8px); margin-bottom: 14px; flex: 0 0 auto;
+        }
+        .audio-bar-title { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; color: #5a6b5e; text-transform: uppercase; }
+        .audio-bar-toggles { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .audio-toggle-pill {
+          display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 99px;
+          border: 1px solid #d5d8cf; background: white; color: #546356; font-size: 11px; font-weight: 700;
+          cursor: pointer; transition: all 0.22s ease; font-family: inherit;
+        }
+        .audio-toggle-pill:hover { border-color: #8fa894; background: #fafaf8; }
+        .audio-toggle-pill.active {
+          background: #edf5ee; border-color: #73ae82; color: #2e5338; box-shadow: 0 2px 10px rgba(115, 174, 130, 0.2);
+        }
+
+        /* Ratings */
+        .rating-block {
+          padding: 14px 16px; border-radius: 20px; border: 1px solid #e2e1d7; background: rgba(255,255,255,0.65);
+          backdrop-filter: blur(8px); margin-bottom: 16px; flex: 0 0 auto;
+        }
+        .rating-label { font-size: 12px; font-weight: 750; color: #2e3b32; margin: 0 0 10px; }
+        .rating-label small { font-weight: 500; color: #7f897f; font-size: 10px; margin-left: 4px; }
+        .rating-pips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+        .rating-pip {
+          min-width: 0; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          border-radius: 14px; border: 1px solid #dcdad0; background: white; color: #38463c; cursor: pointer;
+          transition: all 0.25s cubic-bezier(.22,1,.36,1); font-family: inherit;
+        }
+        .rating-pip span:first-child { font-size: 15px; font-weight: 800; line-height: 1; }
+        .rating-pip-text { font-size: 8px; font-weight: 700; color: #8e968d; margin-top: 3px; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .rating-pip:hover { transform: translateY(-2px); border-color: #8fa894; box-shadow: 0 6px 16px rgba(50, 65, 52, 0.08); }
+        .rating-pip.active {
+          background: var(--mood-accent, #73ae82); border-color: var(--mood-accent, #73ae82); color: white;
+          transform: translateY(-2px); box-shadow: 0 8px 20px color-mix(in srgb, var(--mood-accent, #73ae82) 35%, transparent);
+        }
+        .rating-pip.active .rating-pip-text { color: rgba(255, 255, 255, 0.95); }
+        .rating-set { margin: 10px 0 0; font-size: 11px; color: #58665a; }
+        .rating-delta-card { margin-top: 12px; }
+        .rating-delta {
+          display: inline-block; padding: 8px 14px; border-radius: 12px; font-size: 11px; font-weight: 700;
+          line-height: 1.45; background: #edf5ee; color: #32583c; border: 1px solid #cde1d0;
+        }
+        .practice-saved-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 750; color: #436e4d; background: rgba(115,174,130,0.12); padding: 4px 10px; border-radius: 99px; margin-top: 8px; }
+
+        /* Filter bar */
+        .ex-filter-bar { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; flex: 0 0 auto; }
+        .ex-filter-btn {
+          padding: 6px 12px; border-radius: 99px; border: 1px solid #dedcd3; background: rgba(255,255,255,0.6);
+          color: #616e63; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; font-family: inherit;
+        }
+        .ex-filter-btn:hover { background: white; border-color: #8fa894; color: #2d3b31; }
+        .ex-filter-btn.active {
+          background: #394d3f; border-color: #394d3f; color: white; box-shadow: 0 4px 14px rgba(57, 77, 63, 0.22);
+        }
+
+        /* Exercise cards grid */
+        .exercise-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-bottom: 18px; }
+        .exercise-card {
+          display: flex; flex-direction: column; text-align: left; padding: 15px; border-radius: 20px;
+          border: 1px solid #e1ded4; background: rgba(255,255,255,0.65); backdrop-filter: blur(8px);
+          cursor: pointer; transition: all 0.3s cubic-bezier(.22,1,.36,1); position: relative; font-family: inherit;
+        }
+        .exercise-card:hover {
+          transform: translateY(-3px); border-color: var(--card-color, #73ae82); background: white;
+          box-shadow: 0 16px 36px rgba(55, 67, 57, 0.09);
+        }
+        .ex-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .ex-card-emoji { font-size: 22px; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: rgba(255, 255, 255, 0.9); box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
+        .ex-card-tag { font-size: 8px; font-weight: 800; letter-spacing: 0.12em; color: #58695b; padding: 3px 7px; border-radius: 6px; background: #edf4ec; }
+        .ex-card-duration { font-size: 10px; font-weight: 750; color: #8e968d; }
+        .ex-card-title { color: #26332b; font-size: 14px; font-weight: 750; margin-top: 3px; }
+        .ex-card-sub { color: #798279; font-size: 11px; margin-bottom: 6px; }
+        .ex-card-desc { color: #626e63; font-size: 11px; line-height: 1.5; margin: 0 0 10px; flex: 1; }
+        .ex-card-research { font-size: 9px; color: #7f897f; background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 8px; margin-bottom: 10px; line-height: 1.35; font-style: italic; }
+        .ex-card-start { font-size: 11px; font-weight: 800; color: #35573d; display: inline-flex; align-items: center; gap: 4px; transition: transform 0.2s ease; }
+        .exercise-card:hover .ex-card-start { transform: translateX(3px); }
+
+        /* Active exercise view */
+        .active-ex-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 8px; flex: 0 0 auto; }
+        .active-ex-header h2 { margin: 6px 0 0; color: #29372e; font-size: clamp(24px, 2.5vw, 36px); line-height: 1.05; letter-spacing: -0.05em; }
+        .active-ex-header h2 em { color: #71987a; font-family: Georgia, serif; font-weight: 400; font-size: 0.85em; }
+        .active-audio-controls { display: flex; align-items: center; gap: 6px; padding-top: 4px; }
+        .audio-mini-btn {
+          padding: 5px 9px; border-radius: 99px; border: 1px solid #dcd9cf; background: white;
+          color: #556357; font-size: 10px; font-weight: 750; cursor: pointer; transition: all 0.2s ease; font-family: inherit;
+        }
+        .audio-mini-btn.active { background: #edf5ee; border-color: #73ae82; color: #2e5338; }
+
+        /* Breathing zone */
+        .breath-zone {
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          padding: 26px 20px; border-radius: 26px; border: 1px solid #e1ded4; background: rgba(255,255,255,0.6);
+          margin-top: 8px; position: relative;
+        }
+        .breath-ring {
+          width: 180px; height: 180px; border-radius: 50%; display: grid; place-items: center;
+          border: 3px solid var(--bcolor, #8baed0);
+          background: radial-gradient(circle, color-mix(in srgb, var(--bcolor, #8baed0) 24%, white), transparent 70%);
+          transform: scale(var(--bscale, 1)); transition: transform 3.9s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 16px 45px color-mix(in srgb, var(--bcolor, #8baed0) 22%, transparent);
+        }
+        .breath-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .breath-cue { font-size: 14px; font-weight: 800; letter-spacing: 0.12em; color: #26332b; text-transform: uppercase; }
+        .breath-count { font-size: 40px; font-weight: 800; color: #26332b; line-height: 1; margin-top: 3px; }
+        .breath-instruction { margin: 18px 0 12px; font-size: 13px; font-weight: 600; color: #435147; text-align: center; max-width: 360px; line-height: 1.45; }
+        .breath-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+        .breath-ctrl-btn {
+          padding: 5px 13px; border-radius: 99px; border: 1px solid #d4d7cf; background: white;
+          color: #445348; font-size: 11px; font-weight: 750; cursor: pointer; transition: all 0.2s ease; font-family: inherit;
+        }
+        .breath-ctrl-btn:hover { border-color: #8fa894; background: #fafaf8; }
+        .breath-progress { display: flex; gap: 8px; margin-bottom: 5px; }
+        .breath-round-dot { width: 9px; height: 9px; border-radius: 50%; background: #dfe2db; transition: all 0.3s ease; }
+        .breath-round-dot.done { background: #73ae82; }
+        .breath-round-dot.active { background: var(--bcolor, #8baed0); transform: scale(1.3); box-shadow: 0 0 8px color-mix(in srgb, var(--bcolor, #8baed0) 60%, transparent); }
+        .breath-round-label { font-size: 10px; font-weight: 800; color: #879187; letter-spacing: 0.1em; text-transform: uppercase; }
+
+        /* Prompt zone */
+        .prompt-zone {
+          display: flex; flex-direction: column; padding: 22px; border-radius: 24px;
+          border: 1px solid #e1ded4; background: rgba(255,255,255,0.65); backdrop-filter: blur(8px); margin-top: 8px;
+        }
+        .prompt-number { font-size: 10px; font-weight: 800; letter-spacing: 0.18em; color: #879187; margin-bottom: 8px; }
+        .prompt-text { font-size: 17px; font-weight: 700; color: #28362d; line-height: 1.4; margin: 0 0 8px; }
+        .prompt-sub { font-size: 12px; color: #6e7970; margin: 0 0 12px; line-height: 1.5; }
+        .sense-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .sense-emoji { font-size: 26px; }
+
+        .prompt-chips-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 12px; }
+        .prompt-chip-hint { font-size: 10px; font-weight: 750; color: #7f897f; margin-right: 2px; }
+        .prompt-suggestion-chip {
+          padding: 4px 9px; border-radius: 99px; border: 1px solid #dedcd3; background: white;
+          font-size: 11px; font-weight: 600; color: #49574d; cursor: pointer; transition: all 0.2s ease; font-family: inherit;
+        }
+        .prompt-suggestion-chip:hover { border-color: #73ae82; background: #edf5ee; color: #2b4933; }
+
+        .defusion-mirror {
+          padding: 11px 14px; border-radius: 14px; background: #f4f0f8; border-left: 3px solid #a796c8; margin-bottom: 12px;
+        }
+        .mirror-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.14em; color: #77629b; display: block; margin-bottom: 3px; }
+        .defusion-mirror p { margin: 0 0 4px; font-size: 12px; color: #3c324e; font-weight: 600; }
+        .defusion-mirror em { color: #583c84; font-style: normal; text-decoration: underline; }
+        .defusion-mirror small { color: #7f7492; font-size: 10px; }
+
+        .prompt-note {
+          width: 100%; border-radius: 16px; border: 1px solid #d5dad0; background: white;
+          padding: 12px 14px; font-family: inherit; font-size: 13px; color: #28372d; resize: vertical;
+          margin-bottom: 14px; outline: none; transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+        .prompt-note:focus { border-color: #73ae82; box-shadow: 0 0 0 3px rgba(115, 174, 130, 0.15); }
+        .prompt-actions-row { display: flex; justify-content: flex-end; }
+
+        /* Completion view */
+        .exercise-done {
+          display: flex; flex-direction: column; align-items: center; text-align: center;
+          padding: 28px 20px; border-radius: 26px; border: 1px solid #e1ded4; background: rgba(255,255,255,0.7);
+          margin-top: 8px;
+        }
+        .done-check {
+          width: 52px; height: 52px; border-radius: 50%; background: #edf5ee; color: #437750;
+          font-size: 24px; font-weight: 800; display: grid; place-items: center; margin-bottom: 12px;
+          box-shadow: 0 8px 22px rgba(115, 174, 130, 0.2); animation: completionPop 0.6s cubic-bezier(.22,1,.36,1);
+        }
+        .done-message { font-size: 17px; color: #25332a; margin: 0 0 4px; font-weight: 600; }
+        .done-message strong { color: #1e3325; font-weight: 750; }
+        .done-research { font-size: 11px; color: #7b867c; max-width: 440px; margin-bottom: 18px; line-height: 1.5; font-style: italic; }
+
+        .ai-insight-btn {
+          display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 380px;
+          padding: 12px 20px; border-radius: 16px; border: 1px solid #d4cbde; background: linear-gradient(135deg, #f7f3fb, #f0ebf8);
+          color: #5d4682; font-family: inherit; font-size: 12px; font-weight: 750; cursor: pointer; transition: all 0.25s ease;
+          margin-top: 14px;
+        }
+        .ai-insight-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(167, 150, 200, 0.25); border-color: #a796c8; }
+        .ai-spin { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(93, 70, 130, 0.25); border-top-color: #5d4682; border-radius: 50%; animation: completionSpin 0.7s linear infinite; }
+        .ai-reply-card {
+          width: 100%; max-width: 480px; text-align: left; padding: 15px 18px; border-radius: 18px;
+          border: 1px solid #ddd6e8; background: #faf8fd; margin-top: 14px; animation: checkinStageIn 0.4s ease;
+        }
+        .ai-reply-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.14em; color: #7a60a4; display: block; margin-bottom: 5px; }
+        .ai-reply-card p { margin: 0; font-size: 12px; color: #3b2d52; line-height: 1.6; }
+        .ai-reply-link { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 750; color: #674792; text-decoration: none; margin-top: 10px; }
+        .ai-reply-link:hover { text-decoration: underline; }
+
+        /* Right panel — art & science */
+        .intervention-art {
+          position: relative; width: 100%; height: 100%; min-height: 0; display: flex; flex-direction: column;
+          justify-content: center; align-items: center; text-align: center; padding: 32px 24px; border-radius: 34px;
+          background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--mood-accent, #73ae82) 20%, white), transparent 35%),
+                      linear-gradient(145deg, #eaf2e8, #f4eee7 65%, #eae7f3);
+          box-shadow: inset 0 1px rgba(255,255,255,.75), 0 24px 70px rgba(54, 67, 55, 0.08); overflow: hidden;
+        }
+        .int-art-ring { position: absolute; border: 1px solid rgba(75, 94, 78, 0.12); border-radius: 50%; pointer-events: none; }
+        .int-art-ring.ring-a { width: 250px; height: 250px; animation: orbitRotate 18s linear infinite; }
+        .int-art-ring.ring-b { width: 330px; height: 190px; transform: rotate(35deg); animation: orbitRotateReverse 22s linear infinite; }
+        .int-art-center {
+          position: relative; z-index: 2; width: 110px; height: 110px; border-radius: 50%;
+          background: rgba(255, 255, 255, 0.55); border: 1px solid rgba(255, 255, 255, 0.85);
+          box-shadow: 0 20px 50px rgba(55, 67, 57, 0.12); display: grid; place-items: center; font-size: 52px;
+          margin-bottom: 18px; backdrop-filter: blur(8px); animation: emojiBreathe 4s ease-in-out infinite;
+        }
+        .int-art-label { position: relative; z-index: 2; margin-bottom: 14px; }
+        .int-art-label small { font-size: 9px; font-weight: 800; letter-spacing: 0.18em; color: #6f7a70; }
+        .int-art-label p { margin: 6px 0 0; font-size: 14px; font-weight: 600; color: #28372d; font-family: Georgia, serif; font-style: italic; }
+        .int-art-infocard {
+          position: relative; z-index: 2; max-width: 290px; padding: 12px 14px; border-radius: 16px;
+          background: rgba(255, 255, 255, 0.55); border: 1px solid rgba(255, 255, 255, 0.75);
+          backdrop-filter: blur(8px); font-size: 11px; color: #4b584d; line-height: 1.5; margin-bottom: 16px; text-align: center;
+        }
+        .int-art-infocard strong { display: block; font-size: 12px; color: #28362d; margin-bottom: 4px; }
+        .int-art-infocard p { margin: 0; }
+        .int-research-strip {
+          position: relative; z-index: 2; padding: 6px 14px; border-radius: 99px; background: rgba(255, 255, 255, 0.65);
+          border: 1px solid rgba(255, 255, 255, 0.85); font-size: 9px; font-weight: 800; letter-spacing: 0.1em;
+          color: #58685b; text-transform: uppercase;
+        }
+        .intervention-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; flex: 0 0 auto; }
 
         /* Footer */
         .checkin-rock-footer { flex: 0 0 auto; display: flex; justify-content: center; align-items: center; gap: 9px; margin: 16px auto 0; color: #a0a69f; font-size: 9px; letter-spacing: .04em; }
@@ -739,6 +2045,106 @@ function CheckIn() {
         [data-theme="dark"] .summary-block p { color: #8ba693; }
         [data-theme="dark"] .section-kicker { color: #5e7866; }
         [data-theme="dark"] .complete-rock-content h2 em { color: #6fa87e; }
+
+        /* step 5 — practice & micro-interventions */
+        [data-theme="dark"] .intervention-rock { color: #e4ede5; }
+        [data-theme="dark"] .intervention-left { scrollbar-color: #2a3d2e transparent; }
+        [data-theme="dark"] .intervention-left::-webkit-scrollbar-thumb { background: #2a3d2e; }
+        [data-theme="dark"] .intervention-head-row h2 { color: #e4ede5; }
+        [data-theme="dark"] .intervention-head-row h2 em { color: #6fa87e; }
+        [data-theme="dark"] .intervention-intro { color: #8ba693; }
+
+        [data-theme="dark"] .practice-audio-bar { background: rgba(255,255,255,0.04); border-color: #2a3d2e; }
+        [data-theme="dark"] .audio-bar-title { color: #8ba693; }
+        [data-theme="dark"] .audio-toggle-pill { background: rgba(255,255,255,0.05); border-color: #2a3d2e; color: #c4d4c8; }
+        [data-theme="dark"] .audio-toggle-pill:hover { background: rgba(255,255,255,0.08); border-color: #3d5945; }
+        [data-theme="dark"] .audio-toggle-pill.active { background: #1e3327; border-color: #4a7a58; color: #6fa87e; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+
+        [data-theme="dark"] .rating-block { background: rgba(255,255,255,0.04); border-color: #2a3d2e; }
+        [data-theme="dark"] .rating-label { color: #e4ede5; }
+        [data-theme="dark"] .rating-label small { color: #5e7866; }
+        [data-theme="dark"] .rating-pip { background: rgba(255,255,255,0.06); border-color: #2a3d2e; color: #c4d4c8; }
+        [data-theme="dark"] .rating-pip:hover { background: rgba(255,255,255,0.1); border-color: #4a7a58; }
+        [data-theme="dark"] .rating-pip.active { background: #234830; border-color: #6fa87e; color: white; box-shadow: 0 6px 18px rgba(111,168,126,0.25); }
+        [data-theme="dark"] .rating-pip-text { color: #5e7866; }
+        [data-theme="dark"] .rating-pip.active .rating-pip-text { color: #c4d4c8; }
+        [data-theme="dark"] .rating-set { color: #8ba693; }
+        [data-theme="dark"] .rating-delta { background: #1a2f22; border-color: #2e4d37; color: #73b885; }
+        [data-theme="dark"] .practice-saved-badge { background: rgba(111,168,126,0.15); color: #73b885; }
+
+        [data-theme="dark"] .ex-filter-btn { background: rgba(255,255,255,0.05); border-color: #2a3d2e; color: #8ba693; }
+        [data-theme="dark"] .ex-filter-btn:hover { background: rgba(255,255,255,0.08); border-color: #3d5945; color: #e4ede5; }
+        [data-theme="dark"] .ex-filter-btn.active { background: #2e4735; border-color: #6fa87e; color: #e4ede5; }
+
+        [data-theme="dark"] .exercise-card { background: rgba(255,255,255,0.04); border-color: #2a3d2e; color: #e4ede5; }
+        [data-theme="dark"] .exercise-card:hover { background: rgba(255,255,255,0.08); border-color: var(--card-color, #4a7a58); box-shadow: 0 16px 36px rgba(0,0,0,0.4); }
+        [data-theme="dark"] .ex-card-emoji { background: rgba(255,255,255,0.08); }
+        [data-theme="dark"] .ex-card-tag { background: #1e3327; color: #6fa87e; }
+        [data-theme="dark"] .ex-card-duration { color: #5e7866; }
+        [data-theme="dark"] .ex-card-title { color: #e4ede5; }
+        [data-theme="dark"] .ex-card-sub { color: #8ba693; }
+        [data-theme="dark"] .ex-card-desc { color: #8ba693; }
+        [data-theme="dark"] .ex-card-research { background: rgba(255,255,255,0.04); color: #7f9986; }
+        [data-theme="dark"] .ex-card-start { color: #6fa87e; }
+
+        [data-theme="dark"] .active-ex-header h2 { color: #e4ede5; }
+        [data-theme="dark"] .active-ex-header h2 em { color: #6fa87e; }
+        [data-theme="dark"] .audio-mini-btn { background: rgba(255,255,255,0.06); border-color: #2a3d2e; color: #c4d4c8; }
+        [data-theme="dark"] .audio-mini-btn.active { background: #1e3327; border-color: #4a7a58; color: #6fa87e; }
+
+        [data-theme="dark"] .breath-zone { background: rgba(255,255,255,0.04); border-color: #2a3d2e; }
+        [data-theme="dark"] .breath-ring { background: radial-gradient(circle, color-mix(in srgb, var(--bcolor, #8baed0) 16%, #182118), transparent 70%); border-color: var(--bcolor, #8baed0); box-shadow: 0 16px 45px rgba(0,0,0,0.45); }
+        [data-theme="dark"] .breath-cue { color: #e4ede5; }
+        [data-theme="dark"] .breath-count { color: #e4ede5; }
+        [data-theme="dark"] .breath-instruction { color: #c4d4c8; }
+        [data-theme="dark"] .breath-ctrl-btn { background: rgba(255,255,255,0.06); border-color: #2a3d2e; color: #c4d4c8; }
+        [data-theme="dark"] .breath-ctrl-btn:hover { background: rgba(255,255,255,0.1); border-color: #4a7a58; }
+        [data-theme="dark"] .breath-round-dot { background: #2a3d2e; }
+        [data-theme="dark"] .breath-round-label { color: #5e7866; }
+
+        [data-theme="dark"] .prompt-zone { background: rgba(255,255,255,0.04); border-color: #2a3d2e; }
+        [data-theme="dark"] .prompt-number { color: #5e7866; }
+        [data-theme="dark"] .prompt-text { color: #e4ede5; }
+        [data-theme="dark"] .prompt-sub { color: #8ba693; }
+        [data-theme="dark"] .prompt-chip-hint { color: #5e7866; }
+        [data-theme="dark"] .prompt-suggestion-chip { background: rgba(255,255,255,0.06); border-color: #2a3d2e; color: #c4d4c8; }
+        [data-theme="dark"] .prompt-suggestion-chip:hover { background: #1e3327; border-color: #4a7a58; color: #6fa87e; }
+
+        [data-theme="dark"] .defusion-mirror { background: #1d1828; border-left-color: #8c73b8; }
+        [data-theme="dark"] .defusion-mirror p { color: #d8cce8; }
+        [data-theme="dark"] .defusion-mirror em { color: #c6aee6; }
+        [data-theme="dark"] .defusion-mirror small { color: #887a9e; }
+
+        [data-theme="dark"] .prompt-note { background: rgba(255,255,255,0.05); border-color: #2a3d2e; color: #e4ede5; }
+        [data-theme="dark"] .prompt-note:focus { border-color: #4a7a58; box-shadow: 0 0 0 3px rgba(111,168,126,0.15); }
+        [data-theme="dark"] .prompt-note::placeholder { color: #3d5548; }
+
+        [data-theme="dark"] .exercise-done { background: rgba(255,255,255,0.04); border-color: #2a3d2e; }
+        [data-theme="dark"] .done-check { background: #1e3327; color: #6fa87e; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+        [data-theme="dark"] .done-message { color: #e4ede5; }
+        [data-theme="dark"] .done-message strong { color: #73b885; }
+        [data-theme="dark"] .done-research { color: #8ba693; }
+
+        [data-theme="dark"] .ai-insight-btn { background: linear-gradient(135deg, #221a30, #2a203d); border-color: #3c2f55; color: #cbb4eb; }
+        [data-theme="dark"] .ai-insight-btn:hover { border-color: #a796c8; box-shadow: 0 8px 22px rgba(0,0,0,0.4); }
+        [data-theme="dark"] .ai-spin { border-color: rgba(203,180,235,0.25); border-top-color: #cbb4eb; }
+        [data-theme="dark"] .ai-reply-card { background: #1b1626; border-color: #34284d; color: #d7cde5; }
+        [data-theme="dark"] .ai-reply-card p { color: #d7cde5; }
+        [data-theme="dark"] .ai-reply-tag { color: #b39cd8; }
+        [data-theme="dark"] .ai-reply-link { color: #cbb4eb; }
+
+        [data-theme="dark"] .intervention-art {
+          background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--mood-accent, #6fa87e) 15%, #182118), transparent 35%),
+                      linear-gradient(145deg, #18241b, #1d2520 65%, #221d2a);
+          box-shadow: inset 0 1px rgba(255,255,255,.05), 0 24px 70px rgba(0, 0, 0, 0.35);
+        }
+        [data-theme="dark"] .int-art-ring { border-color: rgba(255, 255, 255, 0.08); }
+        [data-theme="dark"] .int-art-center { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.16); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); }
+        [data-theme="dark"] .int-art-label small { color: #5e7866; }
+        [data-theme="dark"] .int-art-label p { color: #6fa87e; }
+        [data-theme="dark"] .int-art-infocard { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); color: #8ba693; }
+        [data-theme="dark"] .int-art-infocard strong { color: #e4ede5; }
+        [data-theme="dark"] .int-research-strip { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.12); color: #6fa87e; }
 
         /* footer */
         [data-theme="dark"] .checkin-rock-footer { color: #3d5548; }
