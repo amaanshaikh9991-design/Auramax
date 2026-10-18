@@ -5,7 +5,7 @@ import API_BASE_URL from '../api';
 import AssessmentCard from '../components/AssessmentCard';
 import QuestionRenderer from '../components/QuestionRenderer';
 import ProgressBar from '../components/ProgressBar';
-import { createQuestionsForGrade, ModuleConfig } from '../data/questions';
+import { getQuestionsForGrade, DOMAIN_CONFIG } from '../data/cognitiveQuestionBank_grades1-12';
 import '../styles/assessment.css';
 
 export default function CognitiveTest() {
@@ -70,7 +70,7 @@ export default function CognitiveTest() {
       institution: profile?.institution
     };
     setStudent(studentData);
-    setQuestions(createQuestionsForGrade(studentData.grade));
+    setQuestions(getQuestionsForGrade(studentData.grade));
     setStartTime(Date.now());
     setQStart(Date.now());
     setStep('test');
@@ -110,16 +110,13 @@ export default function CognitiveTest() {
   };
 
   const handleAnswer = useCallback(
-    (answer, isCorrect) => {
-      const rt = Date.now() - qStart;
-      const answerText = currentQ.options?.[answer]
-        ?? currentQ.items?.[answer]?.value
-        ?? (currentQ.type === 'attention' && typeof answer === 'object'
-          ? `Found ${answer.hits} of ${answer.total} targets; ${answer.falseAlarms} incorrect clicks`
-          : String(answer));
-      const correctAnswer = currentQ.options?.[currentQ.answer]
-        ?? currentQ.items?.[currentQ.answer]?.value
-        ?? (currentQ.type === 'attention' ? 'Find every target and avoid other symbols' : '');
+    (answer, isCorrect, meta = {}) => {
+      // Memory questions begin with a "study" screen. Time spent studying is not
+      // thinking time, so it is taken out of the response time.
+      const studyMs = meta.studyMs || 0;
+      const rt = Math.max(0, Date.now() - qStart - studyMs);
+      const answerText = currentQ.options?.[answer] ?? String(answer);
+      const correctAnswer = currentQ.answerText ?? currentQ.options?.[currentQ.answerIndex] ?? '';
       const response = {
         student_id: student.rollNumber,
         age: student.age,
@@ -133,6 +130,7 @@ export default function CognitiveTest() {
         answer: String(answerText),
         correct_answer: String(correctAnswer),
         response_time_ms: Math.round(rt),
+        study_time_ms: Math.round(studyMs),
         error: isCorrect ? 0 : 1,
         attempts: 1,
         difficulty: Math.ceil((currentQ.idx + 1) / 3),
@@ -253,7 +251,7 @@ export default function CognitiveTest() {
             <span>thinking skills</span>
           </div>
           <div className="assessment-overview-item">
-            <strong>5–12</strong>
+            <strong>1–12</strong>
             <span>class levels</span>
           </div>
           <div className="assessment-overview-item">
@@ -335,13 +333,13 @@ export default function CognitiveTest() {
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="student-age">Age</label>
-                <input id="student-age" name="age" type="number" min="8" max="20" placeholder="e.g., 15" required />
+                <input id="student-age" name="age" type="number" min="5" max="20" placeholder="e.g., 15" required />
               </div>
               <div className="form-group">
                 <label htmlFor="student-grade">Class / standard</label>
                 <select id="student-grade" name="grade" defaultValue="" required>
                   <option value="" disabled>Select your class</option>
-                  {Array.from({ length: 8 }, (_, index) => index + 5).map((grade) => (
+                  {Array.from({ length: 12 }, (_, index) => index + 1).map((grade) => (
                     <option key={grade} value={grade}>Class {grade}</option>
                   ))}
                 </select>
@@ -359,7 +357,7 @@ export default function CognitiveTest() {
             <div className="module-preview">
               <h4>What you'll explore:</h4>
               <div className="module-chips">
-                {ModuleConfig.map((m) => (
+                {DOMAIN_CONFIG.map((m) => (
                   <span key={m.key} className="chip">
                     {m.icon} {m.name.replace(/^[A-Z] — /, '')}
                   </span>
