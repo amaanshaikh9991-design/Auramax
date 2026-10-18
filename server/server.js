@@ -813,10 +813,10 @@ app.post(
 
       if (
         !Number.isInteger(age) ||
-        age < 8 ||
+        age < 5 ||
         age > 20 ||
         !Number.isInteger(grade) ||
-        grade < 5 ||
+        grade < 1 ||
         grade > 12 ||
         !["SSC", "CBSE", "Other"].includes(
           board
