@@ -467,6 +467,11 @@ app.post(
             grade: true,
             createdAt: true,
             responses: true,
+            reasoningScore: true,
+            workingMemoryScore: true,
+            attentionScore: true,
+            inhibitionScore: true,
+            flexibilityScore: true,
           },
         });
 
@@ -474,12 +479,15 @@ app.post(
         latestAssessment
           ? `
 The student's latest cognitive assessment is available.
-Class: ${latestAssessment.grade};
-score: ${latestAssessment.score}%
-(${latestAssessment.correctCount}/${latestAssessment.questionCount}).
+Class: ${latestAssessment.grade}; Overall score: ${latestAssessment.score}% (${latestAssessment.correctCount}/${latestAssessment.questionCount}).
+Domain Breakdown:
+- Reasoning / Pattern Detective: ${latestAssessment.reasoningScore ?? "N/A"}%
+- Working Memory Mission: ${latestAssessment.workingMemoryScore ?? "N/A"}%
+- Attention Hunter: ${latestAssessment.attentionScore ?? "N/A"}%
+- Inhibitory Control (Stop-Go): ${latestAssessment.inhibitionScore ?? "N/A"}%
+- Cognitive Flexibility (Rule Switch): ${latestAssessment.flexibilityScore ?? "N/A"}%
 
-Use it only when relevant, be encouraging,
-and suggest practical ways to improve.
+Use it only when relevant, be encouraging, and suggest practical ways to improve.
 Do not diagnose or rank the student.
 `
           : `
@@ -794,6 +802,27 @@ app.delete(
 );
 
 
+function calculateDomainMetrics(items, keys) {
+  const matching = items.filter((x) => {
+    const m = String(x.module || x.domain || x.module_name || "").toLowerCase();
+    return keys.some((k) => m.includes(k.toLowerCase()));
+  });
+
+  const qCount = matching.length;
+  const cCount = matching.reduce((sum, x) => sum + (x.correct ? 1 : 0), 0);
+  const domainScore = qCount > 0 ? Math.round((cCount / qCount) * 100) : 0;
+  const avgRt = qCount > 0
+    ? Math.round(matching.reduce((sum, x) => sum + (Number(x.response_time_ms) || 0), 0) / qCount)
+    : 0;
+
+  return {
+    score: domainScore,
+    correctCount: cCount,
+    questionCount: qCount,
+    avgResponseMs: avgRt,
+  };
+}
+
 app.post(
   "/api/assessments",
   requireAuth,
@@ -811,32 +840,9 @@ app.post(
         responses,
       } = req.body;
 
-      if (
-        !Number.isInteger(age) ||
-        age < 5 ||
-        age > 20 ||
-        !Number.isInteger(grade) ||
-        grade < 1 ||
-        grade > 12 ||
-        !["SSC", "CBSE", "Other"].includes(
-          board
-        ) ||
-        !Array.isArray(responses) ||
-        responses.length !== 30 ||
-        !Number.isInteger(totalTimeMs) ||
-        totalTimeMs < 0 ||
-        !responses.every(
-          (response) =>
-            response &&
-            (
-              response.correct === 0 ||
-              response.correct === 1
-            )
-        )
-      ) {
+      if (!Array.isArray(responses) || responses.length !== 30) {
         return res.status(400).json({
-          message:
-            "A complete 30-question assessment is required.",
+          message: `A complete 30-question assessment is required. Received ${Array.isArray(responses) ? responses.length : 0} responses.`,
         });
       }
 
@@ -845,7 +851,6 @@ app.post(
           where: {
             id: req.studentId,
           },
-
           select: {
             rollNumber: true,
           },
@@ -853,69 +858,101 @@ app.post(
 
       if (!student) {
         return res.status(404).json({
-          message:
-            "Student profile not found",
+          message: "Student profile not found",
         });
       }
 
-      const actualCorrectCount =
-        responses.reduce(
-          (total, response) =>
-            total + response.correct,
-          0
-        );
+      // Safe normalization of demographics
+      const parsedAge = parseInt(age, 10);
+      const finalAge = !isNaN(parsedAge) && parsedAge >= 4 && parsedAge <= 120 ? parsedAge : 15;
 
-      const actualScore =
-        Math.round(
-          (actualCorrectCount /
-            responses.length) *
-            100
-        );
+      const parsedGrade = parseInt(grade, 10);
+      const finalGrade = !isNaN(parsedGrade) && parsedGrade >= 1 && parsedGrade <= 16 ? parsedGrade : 10;
+
+      const sanitizedBoard =
+        typeof board === "string" && board.trim() ? board.trim().slice(0, 20) : "Other";
+
+      const cleanTotalTimeMs = Math.max(0, Math.round(Number(totalTimeMs) || 0));
+
+      const cleanResponses = responses.map((r, i) => {
+        const isCorrect = (r.correct === 1 || r.correct === true || r.correct === "1" || r.isCorrect === true) ? 1 : 0;
+        const rt = Math.max(0, Math.round(Number(r.response_time_ms) || 0));
+        const studyMs = Math.max(0, Math.round(Number(r.study_time_ms) || 0));
+        return {
+          ...r,
+          item: r.item ?? i + 1,
+          correct: isCorrect,
+          error: isCorrect ? 0 : 1,
+          response_time_ms: rt,
+          study_time_ms: studyMs,
+        };
+      });
+
+      const actualCorrectCount = cleanResponses.reduce(
+        (total, response) => total + response.correct,
+        0
+      );
+
+      const actualScore = cleanResponses.length > 0
+        ? Math.round((actualCorrectCount / cleanResponses.length) * 100)
+        : 0;
+
+      // Calculate the five category metrics for Prisma CognitiveAssessment
+      const reasoning = calculateDomainMetrics(cleanResponses, ["reasoning", "pattern"]);
+      const workingMemory = calculateDomainMetrics(cleanResponses, ["memory"]);
+      const attention = calculateDomainMetrics(cleanResponses, ["attention"]);
+      const inhibition = calculateDomainMetrics(cleanResponses, ["inhibition", "stop"]);
+      const flexibility = calculateDomainMetrics(cleanResponses, ["flexibility", "rule"]);
 
       const assessment =
         await prisma.cognitiveAssessment.create({
           data: {
-            studentId:
-              req.studentId,
+            studentId: req.studentId,
+            rollNumber: student.rollNumber || (rollNumber ? String(rollNumber).trim() : "Student"),
+            age: finalAge,
+            grade: finalGrade,
+            board: sanitizedBoard,
+            score: actualScore,
+            correctCount: actualCorrectCount,
+            questionCount: cleanResponses.length,
+            totalTimeMs: cleanTotalTimeMs,
+            responses: cleanResponses,
 
-            rollNumber:
-              student.rollNumber ||
-              rollNumber,
+            reasoningScore: reasoning.score,
+            reasoningCorrectCount: reasoning.correctCount,
+            reasoningQuestionCount: reasoning.questionCount,
+            reasoningAvgResponseMs: reasoning.avgResponseMs,
 
-            age,
-            grade,
-            board,
+            workingMemoryScore: workingMemory.score,
+            workingMemoryCorrectCount: workingMemory.correctCount,
+            workingMemoryQuestionCount: workingMemory.questionCount,
+            workingMemoryAvgResponseMs: workingMemory.avgResponseMs,
 
-            score:
-              actualScore,
+            attentionScore: attention.score,
+            attentionCorrectCount: attention.correctCount,
+            attentionQuestionCount: attention.questionCount,
+            attentionAvgResponseMs: attention.avgResponseMs,
 
-            correctCount:
-              actualCorrectCount,
+            inhibitionScore: inhibition.score,
+            inhibitionCorrectCount: inhibition.correctCount,
+            inhibitionQuestionCount: inhibition.questionCount,
+            inhibitionAvgResponseMs: inhibition.avgResponseMs,
 
-            questionCount:
-              responses.length,
-
-            totalTimeMs,
-
-            responses,
+            flexibilityScore: flexibility.score,
+            flexibilityCorrectCount: flexibility.correctCount,
+            flexibilityQuestionCount: flexibility.questionCount,
+            flexibilityAvgResponseMs: flexibility.avgResponseMs,
           },
         });
 
       res.status(201).json({
-        message:
-          "Assessment saved",
-
+        message: "Assessment saved",
         assessment,
       });
     } catch (error) {
-      console.error(
-        "Assessment error:",
-        error
-      );
-
+      console.error("Assessment error:", error);
       res.status(500).json({
-        message:
-          "Failed to save assessment",
+        message: "Failed to save assessment",
       });
     }
   }
@@ -930,16 +967,14 @@ app.get(
       const assessments =
         await prisma.cognitiveAssessment.findMany({
           where: {
-            studentId:
-              req.studentId,
+            studentId: req.studentId,
           },
-
           orderBy: {
             createdAt: "desc",
           },
-
           select: {
             id: true,
+            rollNumber: true,
             age: true,
             grade: true,
             board: true,
@@ -949,6 +984,31 @@ app.get(
             totalTimeMs: true,
             responses: true,
             createdAt: true,
+
+            reasoningScore: true,
+            reasoningCorrectCount: true,
+            reasoningQuestionCount: true,
+            reasoningAvgResponseMs: true,
+
+            workingMemoryScore: true,
+            workingMemoryCorrectCount: true,
+            workingMemoryQuestionCount: true,
+            workingMemoryAvgResponseMs: true,
+
+            attentionScore: true,
+            attentionCorrectCount: true,
+            attentionQuestionCount: true,
+            attentionAvgResponseMs: true,
+
+            inhibitionScore: true,
+            inhibitionCorrectCount: true,
+            inhibitionQuestionCount: true,
+            inhibitionAvgResponseMs: true,
+
+            flexibilityScore: true,
+            flexibilityCorrectCount: true,
+            flexibilityQuestionCount: true,
+            flexibilityAvgResponseMs: true,
           },
         });
 
@@ -956,14 +1016,9 @@ app.get(
         assessments,
       });
     } catch (error) {
-      console.error(
-        "Assessment history error:",
-        error
-      );
-
+      console.error("Assessment history error:", error);
       return res.status(500).json({
-        message:
-          "Unable to load assessment history",
+        message: "Unable to load assessment history",
       });
     }
   }

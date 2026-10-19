@@ -38,6 +38,7 @@ model Session {
   @@map("sessions")
 }
 
+
 model CognitiveAssessment {
   id            Int      @id @default(autoincrement())
   studentId     Int?     @map("student_id")
@@ -50,9 +51,39 @@ model CognitiveAssessment {
   questionCount Int      @map("question_count")
   totalTimeMs   Int      @map("total_time_ms")
   responses     Json
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
 
-  student       Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  reasoningScore           Int? @map("reasoning_score")
+  reasoningCorrectCount    Int? @map("reasoning_correct_count")
+  reasoningQuestionCount   Int? @map("reasoning_question_count")
+  reasoningAvgResponseMs   Int? @map("reasoning_avg_response_ms")
+
+  workingMemoryScore         Int? @map("working_memory_score")
+  workingMemoryCorrectCount  Int? @map("working_memory_correct_count")
+  workingMemoryQuestionCount Int? @map("working_memory_question_count")
+  workingMemoryAvgResponseMs Int? @map("working_memory_avg_response_ms")
+
+
+  attentionScore           Int? @map("attention_score")
+  attentionCorrectCount    Int? @map("attention_correct_count")
+  attentionQuestionCount   Int? @map("attention_question_count")
+  attentionAvgResponseMs   Int? @map("attention_avg_response_ms")
+
+  
+  inhibitionScore           Int? @map("inhibition_score")
+  inhibitionCorrectCount    Int? @map("inhibition_correct_count")
+  inhibitionQuestionCount   Int? @map("inhibition_question_count")
+  inhibitionAvgResponseMs   Int? @map("inhibition_avg_response_ms")
+
+
+  flexibilityScore           Int? @map("flexibility_score")
+  flexibilityCorrectCount    Int? @map("flexibility_correct_count")
+  flexibilityQuestionCount   Int? @map("flexibility_question_count")
+  flexibilityAvgResponseMs   Int? @map("flexibility_avg_response_ms")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  student Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([rollNumber, createdAt])
   @@index([studentId, createdAt])

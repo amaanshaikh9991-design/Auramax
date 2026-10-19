@@ -3,12 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import API_BASE_URL from "../api";
 import { useTheme } from "../context/ThemeContext";
 
-/* ==========================================================
-   SCENARIOS & DATA
-   Real-life student moments with branching decisions,
-   authentic dialogues, psychological consequences, and tips.
-   ========================================================== */
-
 const CATEGORIES = [
   { id: "all", label: "All Situations", icon: "✦" },
   { id: "academics", label: "Classroom & Academics", icon: "📚" },

@@ -81,17 +81,25 @@ export default function CognitiveTest() {
   const saveAssessment = async (completedResponses, assessmentTime) => {
     setSaveStatus('saving');
     try {
+      const responseList = completedResponses || responses || [];
+      const safeTime = Math.max(0, Math.round(Number(assessmentTime) || Number(totalTime) || 0));
+
       const response = await fetch(`${API_BASE_URL}/api/assessments`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...student,
-          score: Math.round((completedResponses.reduce((sum, response) => sum + response.correct, 0) / completedResponses.length) * 100),
-          correctCount: completedResponses.reduce((sum, response) => sum + response.correct, 0),
-          questionCount: completedResponses.length,
-          responses: completedResponses,
-          totalTimeMs: assessmentTime
+          rollNumber: student?.rollNumber || profile?.rollNumber || 'Student',
+          age: parseInt(student?.age, 10) || 15,
+          grade: parseInt(student?.grade, 10) || 10,
+          board: student?.board || 'Other',
+          name: student?.name || profile?.name,
+          institution: student?.institution || profile?.institution,
+          score: Math.round((responseList.reduce((sum, r) => sum + (r.correct ? 1 : 0), 0) / (responseList.length || 1)) * 100),
+          correctCount: responseList.reduce((sum, r) => sum + (r.correct ? 1 : 0), 0),
+          questionCount: responseList.length,
+          responses: responseList,
+          totalTimeMs: safeTime
         })
       });
       const result = await response.json();
